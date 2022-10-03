@@ -2,22 +2,42 @@ import UIKit
 
 class ReceiveController: UIViewController {
 
-    @IBOutlet weak var addressLabel: UILabel?
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
         title = "Receive"
 
-        addressLabel?.layer.cornerRadius = 8
-        addressLabel?.clipsToBounds = true
+        let addressLabel = UILabel()
 
-        addressLabel?.text = "  \(Manager.shared.ethereumAdapter.receiveAddress)  "
+        view.addSubview(addressLabel)
+        addressLabel.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(24)
+            make.top.equalTo(view.safeAreaLayoutGuide).inset(24)
+        }
+
+        addressLabel.numberOfLines = 0
+        addressLabel.textAlignment = .center
+        addressLabel.font = .systemFont(ofSize: 14)
+        addressLabel.text = Manager.shared.adapter.receiveAddress.eip55
+
+        let copyButton = UIButton()
+
+        view.addSubview(copyButton)
+        copyButton.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(addressLabel.snp.bottom).offset(24)
+        }
+
+        copyButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .medium)
+        copyButton.setTitleColor(.systemBlue, for: .normal)
+        copyButton.setTitleColor(.lightGray, for: .disabled)
+        copyButton.setTitle("Copy", for: .normal)
+        copyButton.addTarget(self, action: #selector(copyToClipboard), for: .touchUpInside)
     }
 
-    @IBAction func copyToClipboard() {
-        UIPasteboard.general.setValue(Manager.shared.ethereumAdapter.receiveAddress.eip55, forPasteboardType: "public.plain-text")
-        print(Manager.shared.ethereumAdapter.receiveAddress.eip55)
+    @objc private func copyToClipboard() {
+        UIPasteboard.general.string = Manager.shared.adapter.receiveAddress.eip55
+        print(Manager.shared.adapter.receiveAddress.eip55)
 
         let alert = UIAlertController(title: "Success", message: "Address copied", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))

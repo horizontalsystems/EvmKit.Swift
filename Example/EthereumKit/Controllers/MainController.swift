@@ -6,48 +6,47 @@ class MainController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        var controllers = [UIViewController]()
+
         let balanceNavigation = UINavigationController(rootViewController: BalanceController())
         balanceNavigation.tabBarItem.title = "Balance"
         balanceNavigation.tabBarItem.image = UIImage(named: "Balance Tab Bar Icon")
-
-        let nftNavigation = UINavigationController(rootViewController: NftController())
-        nftNavigation.tabBarItem.title = "NFT"
-        nftNavigation.tabBarItem.image = UIImage(named: "Balance Tab Bar Icon")
+        controllers.append(balanceNavigation)
 
         let transactionsNavigation = UINavigationController(rootViewController: TransactionsController())
         transactionsNavigation.tabBarItem.title = "Transactions"
         transactionsNavigation.tabBarItem.image = UIImage(named: "Transactions Tab Bar Icon")
+        controllers.append(transactionsNavigation)
 
-        let sendNavigation = UINavigationController(rootViewController: SendController())
-        sendNavigation.tabBarItem.title = "Send"
-        sendNavigation.tabBarItem.image = UIImage(named: "Send Tab Bar Icon")
+        if Manager.shared.signer != nil {
+            let sendNavigation = UINavigationController(rootViewController: SendController())
+            sendNavigation.tabBarItem.title = "Send"
+            sendNavigation.tabBarItem.image = UIImage(named: "Send Tab Bar Icon")
+            controllers.append(sendNavigation)
+        }
 
         let receiveNavigation = UINavigationController(rootViewController: ReceiveController())
         receiveNavigation.tabBarItem.title = "Receive"
         receiveNavigation.tabBarItem.image = UIImage(named: "Receive Tab Bar Icon")
+        controllers.append(receiveNavigation)
 
-        var controllers = [balanceNavigation, nftNavigation, transactionsNavigation, sendNavigation, receiveNavigation]
-
-//        if let _ = Manager.shared.uniswapKit {
-//            let swapNavigation = UINavigationController(rootViewController: UniswapController())
-//            swapNavigation.tabBarItem.title = "Swap"
-//            swapNavigation.tabBarItem.image = UIImage(named: "Transactions Tab Bar Icon")
-//            controllers.append(swapNavigation)
-//        }
-        if let oneInchKit = Manager.shared.oneInchKit {
-            let swapTokenFactory = SwapTokenFactory()
-            let swapTradeDataFactory = SwapTradeDataFactory(swapTokenFactory: swapTokenFactory)
-//            let swapService = UniswapService(uniswapKit: swapKit, swapTokenFactory: swapTokenFactory, swapTradeDataFactory: swapTradeDataFactory)
-            let oneInchService = OneInchService(oneInchKit: oneInchKit, swapTokenFactory: swapTokenFactory, swapTradeDataFactory: swapTradeDataFactory)
-            let swapController = OneInchController(swapAdapter: oneInchService, inputFieldSwapAdapter: nil)
-
-            let swapNavigation = UINavigationController(rootViewController: swapController)
-            swapNavigation.tabBarItem.title = "Swap"
-            swapNavigation.tabBarItem.image = UIImage(named: "Transactions Tab Bar Icon")
-            controllers.append(swapNavigation)
-        }
 
         viewControllers = controllers
+    }
+
+}
+
+extension UILabel {
+
+    func set(string: String, alignment: NSTextAlignment) {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.lineSpacing = 4
+        paragraphStyle.alignment = alignment
+
+        let attributedString = NSMutableAttributedString(string: string)
+        attributedString.addAttribute(NSAttributedString.Key.paragraphStyle, value:paragraphStyle, range:NSMakeRange(0, attributedString.length))
+
+        attributedText = attributedString
     }
 
 }

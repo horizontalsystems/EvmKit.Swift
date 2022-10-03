@@ -1,34 +1,63 @@
 import UIKit
 import RxSwift
+import SnapKit
 import EthereumKit
 
-class BalanceController: UITableViewController {
-    let disposeBag = DisposeBag()
+class BalanceController: UIViewController {
+    private let adapter: EthereumAdapter = Manager.shared.adapter
+    private let disposeBag = DisposeBag()
 
-    var adapters = [IAdapter]()
+    private let titlesLabel = UILabel()
+    private let valuesLabel = UILabel()
+    private let errorsLabel = UILabel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        title = "Balance"
+
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(logout))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Refresh", style: .plain, target: self, action: #selector(refresh))
 
-        tableView.register(UINib(nibName: String(describing: BalanceCell.self), bundle: Bundle(for: BalanceCell.self)), forCellReuseIdentifier: String(describing: BalanceCell.self))
-        tableView.tableFooterView = UIView()
-        tableView.separatorInset = .zero
-
-        adapters.append(Manager.shared.ethereumAdapter)
-        adapters.append(contentsOf: Manager.shared.erc20Adapters)
-
-        for (index, adapter) in adapters.enumerated() {
-            Observable.merge([adapter.lastBlockHeightObservable, adapter.syncStateObservable, adapter.transactionsSyncStateObservable, adapter.balanceObservable])
-                    .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .background))
-                    .observeOn(MainScheduler.instance)
-                    .subscribe(onNext: { [weak self] in
-                        self?.update(index: index)
-                    })
-                    .disposed(by: disposeBag)
+        view.addSubview(titlesLabel)
+        titlesLabel.snp.makeConstraints { make in
+            make.leading.equalToSuperview().inset(16)
+            make.top.equalTo(view.safeAreaLayoutGuide).inset(24)
         }
+
+        titlesLabel.numberOfLines = 0
+        titlesLabel.font = .systemFont(ofSize: 12)
+        titlesLabel.textColor = .gray
+
+        view.addSubview(valuesLabel)
+        valuesLabel.snp.makeConstraints { make in
+            make.top.equalTo(titlesLabel)
+            make.trailing.equalToSuperview().inset(16)
+        }
+
+        valuesLabel.numberOfLines = 0
+        valuesLabel.font = .systemFont(ofSize: 12)
+        valuesLabel.textColor = .black
+
+        view.addSubview(errorsLabel)
+        errorsLabel.snp.makeConstraints { make in
+            make.top.equalTo(titlesLabel.snp.bottom).offset(24)
+            make.leading.trailing.equalToSuperview().inset(16)
+        }
+
+        errorsLabel.numberOfLines = 0
+        errorsLabel.font = .systemFont(ofSize: 12)
+        errorsLabel.textColor = .red
+
+        Observable.merge([adapter.lastBlockHeightObservable, adapter.syncStateObservable, adapter.transactionsSyncStateObservable, adapter.balanceObservable])
+                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
+                .observeOn(MainScheduler.instance)
+                .subscribe(onNext: { [weak self] in
+                    self?.sync()
+                })
+                .disposed(by: disposeBag)
+
+        sync()
     }
 
     @objc func logout() {
@@ -42,35 +71,58 @@ class BalanceController: UITableViewController {
     }
 
     @objc func refresh() {
-        for adapter in adapters {
-            adapter.refresh()
+        adapter.refresh()
+    }
+
+    private func sync() {
+        let syncStateString: String
+        let txSyncStateString: String
+
+        var errorTexts = [String]()
+
+        switch adapter.syncState {
+        case .synced:
+            syncStateString = "Synced!"
+        case .syncing(let progress):
+            if let progress = progress {
+                syncStateString = "Syncing \(Int(progress * 100)) %"
+            } else {
+                syncStateString = "Syncing"
+            }
+        case .notSynced(let error):
+            syncStateString = "Not Synced"
+            errorTexts.append("Sync Error: \(error)")
         }
-    }
 
-    @IBAction func showDebugInfo() {
-        print(Manager.shared.evmKit.debugInfo)
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        adapters.count
-    }
-
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        180
-    }
-
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        tableView.dequeueReusableCell(withIdentifier: String(describing: BalanceCell.self), for: indexPath)
-    }
-
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if let cell = cell as? BalanceCell {
-            cell.bind(adapter: adapters[indexPath.row])
+        switch adapter.transactionsSyncState {
+        case .synced:
+            txSyncStateString = "Synced!"
+        case .syncing(let progress):
+            if let progress = progress {
+                txSyncStateString = "Syncing \(Int(progress * 100)) %"
+            } else {
+                txSyncStateString = "Syncing"
+            }
+        case .notSynced(let error):
+            txSyncStateString = "Not Synced"
+            errorTexts.append("Tx Sync Error: \(error)")
         }
-    }
 
-    private func update(index: Int) {
-        tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .none)
+        errorsLabel.text = errorTexts.joined(separator: "\n\n")
+
+        titlesLabel.set(string: """
+                    Sync state:
+                    Tx Sync state:
+                    Last block height:
+                    Balance:
+                    """, alignment: .left)
+
+        valuesLabel.set(string: """
+                    \(syncStateString)
+                    \(txSyncStateString)
+                    \(adapter.lastBlockHeight.map { "# \($0)" } ?? "n/a")
+                    \(adapter.balance) \(adapter.coin)
+                    """, alignment: .right)
     }
 
 }
