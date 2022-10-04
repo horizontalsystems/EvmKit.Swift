@@ -1,0 +1,128 @@
+import UIKit
+import RxSwift
+import SnapKit
+import EvmKit
+
+class BalanceController: UIViewController {
+    private let adapter: EthereumAdapter = Manager.shared.adapter
+    private let disposeBag = DisposeBag()
+
+    private let titlesLabel = UILabel()
+    private let valuesLabel = UILabel()
+    private let errorsLabel = UILabel()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        title = "Balance"
+
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(logout))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Refresh", style: .plain, target: self, action: #selector(refresh))
+
+        view.addSubview(titlesLabel)
+        titlesLabel.snp.makeConstraints { make in
+            make.leading.equalToSuperview().inset(16)
+            make.top.equalTo(view.safeAreaLayoutGuide).inset(24)
+        }
+
+        titlesLabel.numberOfLines = 0
+        titlesLabel.font = .systemFont(ofSize: 12)
+        titlesLabel.textColor = .gray
+
+        view.addSubview(valuesLabel)
+        valuesLabel.snp.makeConstraints { make in
+            make.top.equalTo(titlesLabel)
+            make.trailing.equalToSuperview().inset(16)
+        }
+
+        valuesLabel.numberOfLines = 0
+        valuesLabel.font = .systemFont(ofSize: 12)
+        valuesLabel.textColor = .black
+
+        view.addSubview(errorsLabel)
+        errorsLabel.snp.makeConstraints { make in
+            make.top.equalTo(titlesLabel.snp.bottom).offset(24)
+            make.leading.trailing.equalToSuperview().inset(16)
+        }
+
+        errorsLabel.numberOfLines = 0
+        errorsLabel.font = .systemFont(ofSize: 12)
+        errorsLabel.textColor = .red
+
+        Observable.merge([adapter.lastBlockHeightObservable, adapter.syncStateObservable, adapter.transactionsSyncStateObservable, adapter.balanceObservable])
+                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
+                .observeOn(MainScheduler.instance)
+                .subscribe(onNext: { [weak self] in
+                    self?.sync()
+                })
+                .disposed(by: disposeBag)
+
+        sync()
+    }
+
+    @objc func logout() {
+        Manager.shared.logout()
+
+        if let window = UIApplication.shared.keyWindow {
+            UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: {
+                window.rootViewController = UINavigationController(rootViewController: WordsController())
+            })
+        }
+    }
+
+    @objc func refresh() {
+        adapter.refresh()
+    }
+
+    private func sync() {
+        let syncStateString: String
+        let txSyncStateString: String
+
+        var errorTexts = [String]()
+
+        switch adapter.syncState {
+        case .synced:
+            syncStateString = "Synced!"
+        case .syncing(let progress):
+            if let progress = progress {
+                syncStateString = "Syncing \(Int(progress * 100)) %"
+            } else {
+                syncStateString = "Syncing"
+            }
+        case .notSynced(let error):
+            syncStateString = "Not Synced"
+            errorTexts.append("Sync Error: \(error)")
+        }
+
+        switch adapter.transactionsSyncState {
+        case .synced:
+            txSyncStateString = "Synced!"
+        case .syncing(let progress):
+            if let progress = progress {
+                txSyncStateString = "Syncing \(Int(progress * 100)) %"
+            } else {
+                txSyncStateString = "Syncing"
+            }
+        case .notSynced(let error):
+            txSyncStateString = "Not Synced"
+            errorTexts.append("Tx Sync Error: \(error)")
+        }
+
+        errorsLabel.text = errorTexts.joined(separator: "\n\n")
+
+        titlesLabel.set(string: """
+                    Sync state:
+                    Tx Sync state:
+                    Last block height:
+                    Balance:
+                    """, alignment: .left)
+
+        valuesLabel.set(string: """
+                    \(syncStateString)
+                    \(txSyncStateString)
+                    \(adapter.lastBlockHeight.map { "# \($0)" } ?? "n/a")
+                    \(adapter.balance) \(adapter.coin)
+                    """, alignment: .right)
+    }
+
+}
