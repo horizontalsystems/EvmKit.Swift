@@ -110,7 +110,7 @@ Some smart contracts store some information concerning your address, which you c
 [Eip20TransactionSyncer](https://github.com/horizontalsystems/Eip20Kit.Swift/blob/master/Sources/Eip20Kit/Core/Eip20TransactionSyncer.swift) is a good example of this. It gets token transfer transactions from Etherscan and feeds EvmKit syncer with them. It is added to EvmKit as following:
 ```swift
 let transactionSyncer = Eip20TransactionSyncer(...)
-ethereumKit.add(syncer: transactionSyncer)
+evmKit.add(syncer: transactionSyncer)
 ```
 
 ### Smart contract call

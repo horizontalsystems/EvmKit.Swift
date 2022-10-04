@@ -18,7 +18,7 @@ class WordsController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        title = "EthereumKit Demo"
+        title = "EvmKit Demo"
 
         let wordsDescriptionLabel = UILabel()
 

@@ -21,7 +21,7 @@ public class Kit {
     private let transactionSyncManager: TransactionSyncManager
     private let decorationManager: DecorationManager
     public let eip20Storage: Eip20Storage
-    private let state: EthereumKitState
+    private let state: EvmKitState
 
     public let address: Address
 
@@ -33,7 +33,7 @@ public class Kit {
 
 
     init(blockchain: IBlockchain, transactionManager: TransactionManager, transactionSyncManager: TransactionSyncManager,
-         state: EthereumKitState = EthereumKitState(), address: Address, chain: Chain, uniqueId: String,
+         state: EvmKitState = EvmKitState(), address: Address, chain: Chain, uniqueId: String,
          transactionProvider: ITransactionProvider, decorationManager: DecorationManager, eip20Storage: Eip20Storage,
          logger: Logger) {
         self.blockchain = blockchain

@@ -1,6 +1,6 @@
 import BigInt
 
-class EthereumKitState {
+class EvmKitState {
     var accountState: AccountState?
     var lastBlockHeight: Int?
 }
