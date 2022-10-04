@@ -38,7 +38,7 @@ public class RpcTransaction: ImmutableMappable {
 extension RpcTransaction: CustomStringConvertible {
 
     public var description: String {
-        "[hash: \(hash.toHexString()); nonce: \(nonce); blockHash: \(blockHash?.toHexString() ?? "nil"); blockNumber: \(blockNumber.map { "\($0)" } ?? "nil"); transactionIndex: \(transactionIndex.map { "\($0)" } ?? "nil"); from: \(from.hex); to: \(to?.hex ?? "nil"); value: \(value); gasPrice: \(gasPrice); gas: \(gasLimit); input: \(input.hex)]"
+        "[hash: \(hash.hs.hexString); nonce: \(nonce); blockHash: \(blockHash?.hs.hexString ?? "nil"); blockNumber: \(blockNumber.map { "\($0)" } ?? "nil"); transactionIndex: \(transactionIndex.map { "\($0)" } ?? "nil"); from: \(from.hex); to: \(to?.hex ?? "nil"); value: \(value); gasPrice: \(gasPrice); gas: \(gasLimit); input: \(input.hex)]"
     }
 
 }

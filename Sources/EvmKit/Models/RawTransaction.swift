@@ -23,7 +23,7 @@ public class RawTransaction {
 extension RawTransaction: CustomStringConvertible {
 
     public var description: String {
-        "RAW TRANSACTION [gasPrice: \(gasPrice); gasLimit: \(gasLimit); to: \(to); value: \(value); data: \(data.toHexString())]"
+        "RAW TRANSACTION [gasPrice: \(gasPrice); gasLimit: \(gasLimit); to: \(to); value: \(value); data: \(data.hs.hexString)]"
     }
 
 }

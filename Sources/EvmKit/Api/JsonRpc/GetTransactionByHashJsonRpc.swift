@@ -5,7 +5,7 @@ class GetTransactionByHashJsonRpc: JsonRpc<RpcTransaction> {
     init(transactionHash: Data) {
         super.init(
                 method: "eth_getTransactionByHash",
-                params: [transactionHash.toHexString()]
+                params: [transactionHash.hs.hexString]
         )
     }
 

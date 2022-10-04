@@ -6,7 +6,7 @@ class CallJsonRpc: DataJsonRpc {
         super.init(
                 method: "eth_call",
                 params: [
-                    ["to": contractAddress.hex, "data": data.toHexString()],
+                    ["to": contractAddress.hex, "data": data.hs.hexString],
                     defaultBlockParameter.raw
                 ]
         )

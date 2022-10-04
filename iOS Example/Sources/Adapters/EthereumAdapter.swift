@@ -23,7 +23,7 @@ class EthereumAdapter {
         }
 
         return TransactionRecord(
-                transactionHash: transaction.hash.toHexString(),
+                transactionHash: transaction.hash.hs.hexString,
                 transactionHashData: transaction.hash,
                 timestamp: transaction.timestamp,
                 isFailed: transaction.isFailed,
@@ -31,7 +31,7 @@ class EthereumAdapter {
                 to: transaction.to,
                 amount: amount,
                 input: transaction.input.map {
-                    $0.toHexString()
+                    $0.hs.hexString
                 },
                 blockHeight: transaction.blockNumber,
                 transactionIndex: transaction.transactionIndex,
@@ -121,7 +121,7 @@ extension EthereumAdapter {
     }
 
     func estimatedGasLimit(to address: Address, value: Decimal, gasPrice: GasPrice) -> Single<Int> {
-        let value = BigUInt(value.roundedString(decimal: decimal))!
+        let value = BigUInt(value.hs.roundedString(decimal: decimal))!
 
         return evmKit.estimateGas(to: address, amount: value, gasPrice: gasPrice)
     }
@@ -135,7 +135,7 @@ extension EthereumAdapter {
             return Single.error(SendError.noSigner)
         }
 
-        let amount = BigUInt(amount.roundedString(decimal: decimal))!
+        let amount = BigUInt(amount.hs.roundedString(decimal: decimal))!
         let transactionData = evmKit.transferTransactionData(to: to, value: amount)
 
         return evmKit.rawTransaction(transactionData: transactionData, gasPrice: gasPrice, gasLimit: gasLimit)

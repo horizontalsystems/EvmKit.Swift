@@ -1,4 +1,5 @@
 import Foundation
+import HsExtensions
 
 class GetLogsJsonRpc: JsonRpc<[TransactionLog]> {
 
@@ -21,10 +22,10 @@ class GetLogsJsonRpc: JsonRpc<[TransactionLog]> {
             params["topics"] = topics.map { topic -> Any? in
                 if let array = topic as? [Data?] {
                     return array.map { topic -> String? in
-                        topic?.toHexString()
+                        topic?.hs.hexString
                     }
                 } else if let data = topic as? Data {
-                    return data.toHexString()
+                    return data.hs.hexString
                 } else {
                     return nil
                 }

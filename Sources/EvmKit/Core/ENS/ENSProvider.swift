@@ -20,7 +20,7 @@ public class ENSProvider {
         return rpcApiProvider.single(rpc: rpc)
                 .flatMap { data -> Single<Address> in
                     do {
-                        let address = data.prefix(32).suffix(20).toHexString()
+                        let address = data.prefix(32).suffix(20).hs.hexString
                         return try Single.just(Address(hex: address))
                     } catch {
                         return Single.error(error)

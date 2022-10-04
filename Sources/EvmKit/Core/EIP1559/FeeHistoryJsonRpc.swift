@@ -4,7 +4,7 @@ class FeeHistoryJsonRpc: JsonRpc<FeeHistory> {
 
     init(blocksCount: Int, defaultBlockParameter: DefaultBlockParameter, rewardPercentile: [Int]) {
         let params: [Any] = [
-            "0x" + String(blocksCount, radix: 16).removeLeadingZeros(),
+            "0x" + String(blocksCount, radix: 16).hs.removeLeadingZeros(),
             defaultBlockParameter.raw,
             rewardPercentile
         ]

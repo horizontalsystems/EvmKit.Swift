@@ -90,7 +90,7 @@ public class ContractMethodHelper {
     }
 
     private class func parseInt(data: Data) -> Int {
-        Data(data.reversed()).to(type: Int.self)
+        Data(data.reversed()).hs.to(type: Int.self)
     }
 
     private class func parseAddresses(startPosition: Int, inputArguments: Data) -> [Address] {

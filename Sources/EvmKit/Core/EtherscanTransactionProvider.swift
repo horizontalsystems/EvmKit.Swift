@@ -62,7 +62,7 @@ extension EtherscanTransactionProvider: ITransactionProvider {
         let params: [String: Any] = [
             "module": "account",
             "action": "txlistinternal",
-            "txhash": transactionHash.toHexString(),
+            "txhash": transactionHash.hs.hexString,
             "sort": "desc"
         ]
 

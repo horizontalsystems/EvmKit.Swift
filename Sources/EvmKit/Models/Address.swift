@@ -24,7 +24,7 @@ public struct Address {
     }
 
     public var hex: String {
-        raw.toHexString()
+        raw.hs.hexString
     }
 
     public var eip55: String {

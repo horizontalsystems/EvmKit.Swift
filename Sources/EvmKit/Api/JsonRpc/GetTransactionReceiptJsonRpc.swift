@@ -5,7 +5,7 @@ class GetTransactionReceiptJsonRpc: JsonRpc<RpcTransactionReceipt> {
     init(transactionHash: Data) {
         super.init(
                 method: "eth_getTransactionReceipt",
-                params: [transactionHash.toHexString()]
+                params: [transactionHash.hs.hexString]
         )
     }
 
