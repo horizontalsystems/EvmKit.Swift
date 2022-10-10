@@ -1,6 +1,7 @@
 import HsCryptoKit
 import BigInt
 import Foundation
+import HsExtensions
 
 public class ContractMethodHelper {
 
@@ -21,7 +22,7 @@ public class ContractMethodHelper {
             case let argument as BigUInt:
                 data += pad(data: argument.serialize())
             case let argument as String:
-                data += pad(data: Data(hex: argument) ?? Data())
+                data += pad(data: argument.hs.hexData ?? Data())
             case let argument as Address:
                 data += pad(data: argument.raw)
             case let argument as [Address]:

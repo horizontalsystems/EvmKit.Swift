@@ -9,7 +9,7 @@ struct HexIntTransform: TransformType {
             return nil
         }
 
-        return Int(hexString.stripHexPrefix(), radix: 16)
+        return Int(hexString.hs.stripHexPrefix(), radix: 16)
     }
 
     func transformToJSON(_ value: Int?) -> String? {
@@ -37,7 +37,7 @@ struct HexDataArrayTransform: TransformType {
             return nil
         }
 
-        return hexStrings.compactMap { Data(hex: $0) }
+        return hexStrings.compactMap { $0.hs.hexData }
     }
 
     func transformToJSON(_ value: [Data]?) -> String? {
@@ -53,7 +53,7 @@ struct HexDataTransform: TransformType {
             return nil
         }
 
-        return Data(hex: hexString)
+        return hexString.hs.hexData
     }
 
     func transformToJSON(_ value: Data?) -> String? {
@@ -85,7 +85,7 @@ struct HexBigUIntTransform: TransformType {
             return nil
         }
 
-        return BigUInt(hexString.stripHexPrefix(), radix: 16)
+        return BigUInt(hexString.hs.stripHexPrefix(), radix: 16)
     }
 
     func transformToJSON(_ value: BigUInt?) -> String? {

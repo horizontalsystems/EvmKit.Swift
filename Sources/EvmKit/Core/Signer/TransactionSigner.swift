@@ -73,16 +73,16 @@ class TransactionSigner {
     func signatureLegacy(from data: Data) -> Signature {
         Signature(
                 v: Int(data[64]) + (chainId == 0 ? 27 : (35 + 2 * chainId)),
-                r: BigUInt(data[..<32].hex, radix: 16)!,
-                s: BigUInt(data[32..<64].hex, radix: 16)!
+                r: BigUInt(data[..<32].hs.hex, radix: 16)!,
+                s: BigUInt(data[32..<64].hs.hex, radix: 16)!
         )
     }
 
     func signatureEip1559(from data: Data) -> Signature {
         Signature(
                 v: Int(data[64]),
-                r: BigUInt(data[..<32].hex, radix: 16)!,
-                s: BigUInt(data[32..<64].hex, radix: 16)!
+                r: BigUInt(data[..<32].hs.hex, radix: 16)!,
+                s: BigUInt(data[32..<64].hs.hex, radix: 16)!
         )
     }
 

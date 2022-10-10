@@ -1,6 +1,5 @@
 import Foundation
 import HsCryptoKit
-import UIExtensions
 
 public class BloomFilter {
     private let filter: String

@@ -141,7 +141,7 @@ extension EIP712TypedData {
     private func makeABIValue(name: String, data: JSON?, type: String) throws -> ABIValue {
         if type == "string", let value = data?.stringValue, let valueData = value.data(using: .utf8) {
             return try ABIValue(valueData.sha3, type: .bytes(32))
-        } else if type == "bytes", let value = data?.stringValue, let valueData = Data(hex: value) {
+        } else if type == "bytes", let value = data?.stringValue, let valueData = value.hs.hexData {
             return try ABIValue(valueData.sha3, type: .bytes(32))
         } else if type == "bool", let value = data?.boolValue {
             return try ABIValue(value, type: .bool)
@@ -163,7 +163,7 @@ extension EIP712TypedData {
             }
         } else if type.starts(with: "bytes") {
             if let length = Int(type.dropFirst("bytes".count)), let value = data?.stringValue {
-                if value.starts(with: "0x"), let hex = Data(hex: value) {
+                if value.starts(with: "0x"), let hex = value.hs.hexData {
                     return try ABIValue(hex, type: .bytes(length))
                 } else {
                     return try ABIValue(Data(bytes: Array(value.utf8)), type: .bytes(length))

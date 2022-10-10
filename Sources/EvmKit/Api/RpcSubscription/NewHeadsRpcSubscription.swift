@@ -1,3 +1,5 @@
+import HsExtensions
+
 class NewHeadsRpcSubscription: RpcSubscription<RpcBlockHeader> {
 
     init() {
@@ -9,7 +11,7 @@ class NewHeadsRpcSubscription: RpcSubscription<RpcBlockHeader> {
             throw ParseError.invalidResult(result: result)
         }
 
-        guard let numberHex = resultMap["number"] as? String, let number = Int(numberHex.stripHexPrefix(), radix: 16) else {
+        guard let numberHex = resultMap["number"] as? String, let number = Int(numberHex.hs.stripHexPrefix(), radix: 16) else {
             throw ParseError.noBlockNumber(resultMap: resultMap)
         }
 

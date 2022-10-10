@@ -18,7 +18,7 @@ public struct EthereumAddress: AddressProtocol, Hashable {
 
     /// Validates that the string is a valid address.
     static public func isValid(string: String) -> Bool {
-        guard let data = Data(hex: string) else {
+        guard let data = string.hs.hexData else {
             return false
         }
         return EthereumAddress.isValid(data: data)
@@ -43,7 +43,7 @@ public struct EthereumAddress: AddressProtocol, Hashable {
 
     /// Creates an address with an hexadecimal string representation.
     public init?(string: String) {
-        guard let data = Data(hex: string), EthereumAddress.isValid(data: data) else {
+        guard let data = string.hs.hexData, EthereumAddress.isValid(data: data) else {
             return nil
         }
         self.init(data: data)

@@ -1,6 +1,7 @@
 import Foundation
 import ObjectMapper
 import BigInt
+import HsExtensions
 
 public class RpcTransactionReceipt: ImmutableMappable {
     public let transactionHash: Data

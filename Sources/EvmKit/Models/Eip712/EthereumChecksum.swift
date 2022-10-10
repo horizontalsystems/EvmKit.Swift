@@ -14,9 +14,9 @@ public enum EthereumChecksumType {
 
 public struct EthereumChecksum {
     public static func computeString(for data: Data, type: EthereumChecksumType) -> String {
-        let addressString = data.hex
+        let addressString = data.hs.hex
         let hashInput = addressString.data(using: .ascii)!
-        let hash = Crypto.sha3(hashInput).hex
+        let hash = Crypto.sha3(hashInput).hs.hex
 
         var string = "0x"
         for (a, h) in zip(addressString, hash) {

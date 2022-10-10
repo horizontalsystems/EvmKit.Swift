@@ -1,6 +1,7 @@
 import Foundation
 import HsCryptoKit
 import GRDB
+import HsExtensions
 
 public struct Address {
     public let raw: Data
@@ -16,7 +17,7 @@ public struct Address {
     public init(hex: String) throws {
         try Address.validate(address: hex)
 
-        guard let data = Data(hex: hex) else {
+        guard let data = hex.hs.hexData else {
             throw ValidationError.invalidHex
         }
 
@@ -28,7 +29,7 @@ public struct Address {
     }
 
     public var eip55: String {
-        EIP55.format(address: raw.hex)
+        EIP55.format(address: raw.hs.hex)
     }
 
 }
@@ -40,7 +41,7 @@ extension Address {
     }
 
     private static func isCheckSumAddress(hex: String) throws {
-        let addressHash: String = Crypto.sha3(hex.lowercased().data(using: .ascii)!).hex
+        let addressHash: String = Crypto.sha3(hex.lowercased().data(using: .ascii)!).hs.hex
         for i in 0..<40 {
             let hashSymbol = character(addressHash, i)
 

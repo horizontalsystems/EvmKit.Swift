@@ -22,7 +22,7 @@ public extension L1FeeProvider {
 
         return evmKit.call(contractAddress: contractAddress, data: data)
             .flatMap { data -> Single<BigUInt> in
-                guard let value = BigUInt(data.prefix(32).hex, radix: 16) else {
+                guard let value = BigUInt(data.prefix(32).hs.hex, radix: 16) else {
                     return Single.error(L1FeeError.invalidHex)
                 }
 

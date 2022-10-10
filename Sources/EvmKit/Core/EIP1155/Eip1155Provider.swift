@@ -20,7 +20,7 @@ extension Eip1155Provider {
 
         return rpcApiProvider.single(rpc: rpc)
                 .flatMap { data -> Single<BigUInt> in
-                    guard let value = BigUInt(data.prefix(32).hex, radix: 16) else {
+                    guard let value = BigUInt(data.prefix(32).hs.hex, radix: 16) else {
                         return Single.error(BalanceError.invalidHex)
                     }
 

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD51AFB9204008FA782 /* AppDelegate.swift */; };
+		D3604EBB28F3F8B40066C366 /* UIExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = D3604EBA28F3F8B40066C366 /* UIExtensions */; };
 		D36AAAC923A237940065B32B /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36AAAAF23A237940065B32B /* Configuration.swift */; };
 		D36AAACA23A237940065B32B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D36AAAB023A237940065B32B /* Assets.xcassets */; };
 		D36AAACB23A237940065B32B /* Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36AAAB223A237940065B32B /* Manager.swift */; };
@@ -52,6 +53,7 @@
 			files = (
 				D36DFC2928EBDF5B00D2FC62 /* SnapKit in Frameworks */,
 				D36DFC2628EB016100D2FC62 /* EvmKit in Frameworks */,
+				D3604EBB28F3F8B40066C366 /* UIExtensions in Frameworks */,
 				D3F4CFF328EAE791002DB520 /* RxSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -165,6 +167,7 @@
 				D3F4CFF228EAE791002DB520 /* RxSwift */,
 				D36DFC2528EB016100D2FC62 /* EvmKit */,
 				D36DFC2828EBDF5B00D2FC62 /* SnapKit */,
+				D3604EBA28F3F8B40066C366 /* UIExtensions */,
 			);
 			productName = EthereumKit;
 			productReference = 607FACD01AFB9204008FA782 /* EvmKit Demo.app */;
@@ -199,6 +202,7 @@
 			packageReferences = (
 				D3F4CFF128EAE791002DB520 /* XCRemoteSwiftPackageReference "RxSwift" */,
 				D36DFC2728EBDF5B00D2FC62 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				D3604EB928F3F7FA0066C366 /* XCRemoteSwiftPackageReference "UIExtensions" */,
 			);
 			productRefGroup = 607FACD11AFB9204008FA782 /* Products */;
 			projectDirPath = "";
@@ -416,6 +420,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D3604EB928F3F7FA0066C366 /* XCRemoteSwiftPackageReference "UIExtensions" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/horizontalsystems/UIExtensions.Swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		D36DFC2728EBDF5B00D2FC62 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
@@ -435,6 +447,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D3604EBA28F3F8B40066C366 /* UIExtensions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D3604EB928F3F7FA0066C366 /* XCRemoteSwiftPackageReference "UIExtensions" */;
+			productName = UIExtensions;
+		};
 		D36DFC2528EB016100D2FC62 /* EvmKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = EvmKit;

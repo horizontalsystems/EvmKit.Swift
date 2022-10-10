@@ -1,4 +1,5 @@
 import Foundation
+import HsExtensions
 
 class GetTransactionByHashJsonRpc: JsonRpc<RpcTransaction> {
 
