@@ -127,7 +127,7 @@ In order to make a call to any smart contract, you can use `evmKit.sendSingle(tr
 
 ### Swift Package Manager
 
-[CocoaPods](http://cocoapods.org) is a dependency manager for Cocoa projects. You can install it with the following command:
+[Swift Package Manager](https://www.swift.org/package-manager) is a dependency manager for Swift projects. You can install it with the following command:
 
 ```swift
 dependencies: [
