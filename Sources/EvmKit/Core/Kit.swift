@@ -366,14 +366,14 @@ extension Kit {
 
 extension Kit {
 
-    public static func sign(message: Data, privateKey: Data) throws -> Data {
+    public static func sign(message: Data, privateKey: Data, isLegacy: Bool = false) throws -> Data {
         let ethSigner = EthSigner(privateKey: privateKey)
-        return try ethSigner.sign(message: message)
+        return try ethSigner.sign(message: message, isLegacy: isLegacy)
     }
 
-    public static func sign(message: Data, seed: Data) throws -> Data {
+    public static func sign(message: Data, seed: Data, isLegacy: Bool = false) throws -> Data {
         let privateKey = try Signer.privateKey(seed: seed, chain: .ethereum)
-        return try sign(message: message, privateKey: privateKey)
+        return try sign(message: message, privateKey: privateKey, isLegacy: isLegacy)
     }
 
 }
