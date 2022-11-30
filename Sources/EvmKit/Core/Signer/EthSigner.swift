@@ -9,22 +9,18 @@ class EthSigner {
         self.privateKey = privateKey
     }
 
-    private func prefixed(message: Data) -> Data? {
-        guard let string = String(data: message, encoding: .utf8) else {
-            return nil
-        }
-
+    private func prefixed(message: Data) -> Data {
         let prefix = "\u{0019}Ethereum Signed Message:\n\(message.count)"
 
         guard let prefixData = prefix.data(using: .utf8) else {
-            return nil
+            return message
         }
 
         return Crypto.sha3(prefixData + message)
     }
 
-    public func sign(message: Data) throws -> Data {
-        try Crypto.ellipticSign(prefixed(message: message) ?? message, privateKey: privateKey)
+    public func sign(message: Data, isLegacy: Bool = false) throws -> Data {
+        try Crypto.ellipticSign(isLegacy ? message : prefixed(message: message), privateKey: privateKey)
     }
 
     public func parseTypedData(rawJson: Data) throws -> EIP712TypedData {

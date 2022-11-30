@@ -26,8 +26,8 @@ public class Signer {
         return transactionBuilder.encode(rawTransaction: rawTransaction, signature: signature)
     }
 
-    public func signed(message: Data) throws -> Data {
-        try ethSigner.sign(message: message)
+    public func signed(message: Data, isLegacy: Bool = false) throws -> Data {
+        try ethSigner.sign(message: message, isLegacy: isLegacy)
     }
 
     public func parseTypedData(rawJson: Data) throws -> EIP712TypedData {
