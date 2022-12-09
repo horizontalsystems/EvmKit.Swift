@@ -5,7 +5,15 @@ import HsExtensions
 
 public class ContractMethodHelper {
 
-    public struct StructParameter {
+    public struct DynamicStructParameter {
+        let arguments: [Any]
+
+        public init(_ arguments: [Any]) {
+            self.arguments = arguments
+        }
+    }
+
+    public struct StaticStructParameter {
         let arguments: [Any]
 
         public init(_ arguments: [Any]) {
@@ -50,6 +58,12 @@ public class ContractMethodHelper {
                 parsedArguments.append(BigUInt(data))
                 position += 32
 
+            case is [BigUInt].Type:
+                let arrayPosition = parseInt(data: inputArguments[position..<position + 32])
+                let array: [BigUInt] = parseBigUInt(startPosition: arrayPosition, inputArguments: inputArguments)
+                parsedArguments.append(array)
+                position += 32
+
             case is Address.Type:
                 let data = Data(inputArguments[position..<position + 32])
                 parsedArguments.append(Address(raw: data))
@@ -73,11 +87,16 @@ public class ContractMethodHelper {
                 parsedArguments.append(data)
                 position += 32
 
-            case let object as StructParameter:
+            case let object as DynamicStructParameter:
                 let argumentsPosition = parseInt(data: inputArguments[position..<position + 32])
                 let data: [Any] = decodeABI(inputArguments: Data(inputArguments[argumentsPosition..<inputArguments.count]), argumentTypes: object.arguments)
                 parsedArguments.append(data)
                 position += 32
+
+            case let object as StaticStructParameter:
+                let data: [Any] = decodeABI(inputArguments: Data(inputArguments[position..<inputArguments.count]), argumentTypes: object.arguments)
+                parsedArguments.append(data)
+                position += 32 * object.arguments.count
 
             default: ()
             }
@@ -105,6 +124,19 @@ public class ContractMethodHelper {
         }
 
         return addresses
+    }
+
+    private class func parseBigUInt(startPosition: Int, inputArguments: Data) -> [BigUInt] {
+        let arrayStartPosition = startPosition + 32
+        let size = parseInt(data: inputArguments[startPosition..<arrayStartPosition])
+        var bigUInts = [BigUInt]()
+
+        for i in 0..<size {
+            let bigUIntData = Data(inputArguments[(arrayStartPosition + 32 * i)..<(arrayStartPosition + 32 * (i + 1))])
+            bigUInts.append(BigUInt(bigUIntData))
+        }
+
+        return bigUInts
     }
 
     private class func parseData(startPosition: Int, inputArguments: Data) -> Data {
