@@ -59,7 +59,6 @@ public extension L1FeeProvider {
     static func instance(evmKit: EvmKit.Kit, contractAddress: Address, minLogLevel: Logger.Level = .error) -> L1FeeProvider {
         let logger = Logger(minLogLevel: minLogLevel)
         let networkManager = NetworkManager(logger: logger)
-        let rpcApiProvider: IRpcApiProvider
 
         return L1FeeProvider(evmKit: evmKit, contractAddress: contractAddress)
     }
