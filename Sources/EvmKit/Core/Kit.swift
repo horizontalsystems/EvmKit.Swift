@@ -376,6 +376,20 @@ extension Kit {
         return try sign(message: message, privateKey: privateKey, isLegacy: isLegacy)
     }
 
+    public static func callSingle(networkManager: NetworkManager, rpcSource: RpcSource, contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter = .latest) -> Single<Data> {
+        let rpcApiProvider: IRpcApiProvider
+
+        switch rpcSource {
+        case let .http(urls, auth):
+            rpcApiProvider = NodeApiProvider(networkManager: networkManager, urls: urls, auth: auth)
+        case .webSocket:
+            return Single.error(RpcSourceError.websocketNotSupported)
+        }
+
+        let rpc = RpcBlockchain.callRpc(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter)
+        return rpcApiProvider.single(rpc: rpc)
+    }
+
 }
 
 extension Kit {
@@ -391,6 +405,10 @@ extension Kit {
 
     public enum SendError: Error {
         case noAccountState
+    }
+
+    public enum RpcSourceError: Error {
+        case websocketNotSupported
     }
 
 }
