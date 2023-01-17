@@ -83,6 +83,15 @@ extension Chain {
         )
     }
 
+    public static var gnosis: Chain {
+        Chain(
+                id: 100,
+                coinType: 60,
+                syncInterval: 15,
+                isEIP1559Supported: true
+        )
+    }
+
     public static var ethereumRopsten: Chain {
         Chain(
                 id: 3,

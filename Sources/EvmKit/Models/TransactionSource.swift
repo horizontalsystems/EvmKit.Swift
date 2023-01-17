@@ -83,4 +83,11 @@ extension TransactionSource {
         )
     }
 
+    public static func gnosis(apiKey: String) -> TransactionSource {
+        TransactionSource(
+                name: "gnosisscan.io",
+                type: .etherscan(apiBaseUrl: "https://api.gnosisscan.io", txBaseUrl: "https://gnosisscan.io", apiKey: apiKey)
+        )
+    }
+
 }

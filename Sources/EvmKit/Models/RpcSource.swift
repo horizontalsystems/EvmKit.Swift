@@ -89,4 +89,8 @@ extension RpcSource {
         .http(urls: [URL(string: "https://arb1.arbitrum.io/rpc")!], auth: nil)
     }
 
+    public static func gnosisRpcHttp() -> RpcSource {
+        .http(urls: [URL(string: "https://rpc.gnosischain.com")!], auth: nil)
+    }
+
 }
