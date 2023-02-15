@@ -159,6 +159,10 @@ extension Kit {
         }
     }
 
+    public func nonceSingle(defaultBlockParameter: DefaultBlockParameter) -> Single<Int> {
+        blockchain.nonceSingle(defaultBlockParameter: defaultBlockParameter)
+    }
+
     public func tagTokens() -> [TagToken] {
         transactionManager.tagTokens()
     }
