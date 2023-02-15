@@ -14,8 +14,8 @@ public class L1FeeProvider {
 }
 
 public extension L1FeeProvider {
-    func getL1Fee(gasPrice: GasPrice, gasLimit: Int, to: Address, value: BigUInt, data: Data, nonce: Int?) -> Single<BigUInt> {
-        let rawTransaction = RawTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: to, value: value, data: data, nonce: nonce ?? 1)
+    func getL1Fee(gasPrice: GasPrice, gasLimit: Int, to: Address, value: BigUInt, data: Data) -> Single<BigUInt> {
+        let rawTransaction = RawTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: to, value: value, data: data, nonce: 1)
         let encoded = TransactionBuilder.encode(rawTransaction: rawTransaction, signature: nil, chainId: evmKit.chain.id)
 
         let data = L1FeeMethod(transaction: encoded).encodedABI()
