@@ -90,4 +90,11 @@ extension TransactionSource {
         )
     }
 
+    public static func fantom(apiKey: String) -> TransactionSource {
+        TransactionSource(
+                name: "ftmscan.com",
+                type: .etherscan(apiBaseUrl: "https://api.ftmscan.com", txBaseUrl: "https://ftmscan.com", apiKey: apiKey)
+        )
+    }
+
 }
