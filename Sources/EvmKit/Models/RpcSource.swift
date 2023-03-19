@@ -93,4 +93,8 @@ extension RpcSource {
         .http(urls: [URL(string: "https://rpc.gnosischain.com")!], auth: nil)
     }
 
+    public static func fantomRpcHttp() -> RpcSource {
+        .http(urls: [URL(string: "https://rpc.fantom.network")!], auth: nil)
+    }
+
 }
