@@ -1,11 +1,11 @@
+import Combine
 import UIKit
-import RxSwift
 import SnapKit
 import EvmKit
 
 class BalanceController: UIViewController {
     private let adapter: EthereumAdapter = Manager.shared.adapter
-    private let disposeBag = DisposeBag()
+    private var cancellables = Set<AnyCancellable>()
 
     private let titlesLabel = UILabel()
     private let valuesLabel = UILabel()
@@ -49,13 +49,12 @@ class BalanceController: UIViewController {
         errorsLabel.font = .systemFont(ofSize: 12)
         errorsLabel.textColor = .red
 
-        Observable.merge([adapter.lastBlockHeightObservable, adapter.syncStateObservable, adapter.transactionsSyncStateObservable, adapter.balanceObservable])
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .observeOn(MainScheduler.instance)
-                .subscribe(onNext: { [weak self] in
+        Publishers.MergeMany(adapter.lastBlockHeightPublisher, adapter.syncStatePublisher, adapter.transactionsSyncStatePublisher, adapter.balancePublisher)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in
                     self?.sync()
-                })
-                .disposed(by: disposeBag)
+                }
+                .store(in: &cancellables)
 
         sync()
     }

@@ -1,5 +1,4 @@
 import Foundation
-import RxSwift
 import HdWalletKit
 import BigInt
 import HsCryptoKit

@@ -1,14 +1,16 @@
+import Combine
 import UIKit
 import SnapKit
 import EvmKit
-import RxSwift
+import HsExtensions
 
 class SendController: UIViewController {
     private let adapter: EthereumAdapter = Manager.shared.adapter
     private let feeHistoryProvider = EIP1559GasPriceProvider(evmKit: Manager.shared.evmKit)
-    private var gasPrice = GasPrice.legacy(gasPrice: 50_000_000_000)
+//    private var gasPrice = GasPrice.legacy(gasPrice: 50_000_000_000)
+    private var gasPrice = GasPrice.eip1559(maxFeePerGas: 150_000_000_000, maxPriorityFeePerGas: 600_000_000)
     private var estimateGasLimit: Int?
-    private let disposeBag = DisposeBag()
+    private var cancellables = Set<AnyCancellable>()
 
     private let addressTextField = UITextField()
     private let amountTextField = UITextField()
@@ -116,13 +118,17 @@ class SendController: UIViewController {
         sendButton.setTitle("Send", for: .normal)
         sendButton.addTarget(self, action: #selector(send), for: .touchUpInside)
 
-        feeHistoryProvider.feeHistoryObservable(blocksCount: 2, rewardPercentile: [50])
-                .subscribe(onNext: { [weak self] history in
+        feeHistoryProvider.feeHistoryPublisher(blocksCount: 2, rewardPercentile: [50])
+                .sink(receiveCompletion: { completion in
+                    switch completion {
+                    case .failure(let error):
+                        print("FeeHistoryError: \(error)")
+                    default: ()
+                    }
+                }, receiveValue: { [weak self] history in
                     self?.handle(feeHistory: history)
-                }, onError: { error in
-                    print("FeeHistoryError: \(error)")
                 })
-                .disposed(by: disposeBag)
+                .store(in: &cancellables)
 
         addressTextField.addTarget(self, action: #selector(updateEstimatedGasPrice), for: .editingChanged)
         amountTextField.addTarget(self, action: #selector(updateEstimatedGasPrice), for: .editingChanged)
@@ -152,15 +158,15 @@ class SendController: UIViewController {
 
         gasPriceLabel.text = "Loading..."
 
-        adapter.estimatedGasLimit(to: address, value: value, gasPrice: gasPrice)
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .userInitiated))
-                .observeOn(MainScheduler.instance)
-                .subscribe(onSuccess: { [weak self] gasLimit in
-                    self?.updateGasLimit(value: gasLimit)
-                }, onError: { [weak self] error in
-                    self?.updateGasLimit(value: nil)
-                })
-                .disposed(by: disposeBag)
+        Task { [weak self, adapter, gasPrice] in
+            do {
+                let gasLimit = try await adapter.estimatedGasLimit(to: address, value: value, gasPrice: gasPrice)
+                self?.updateGasLimit(value: gasLimit)
+            } catch {
+                print(error)
+                self?.updateGasLimit(value: nil)
+            }
+        }
     }
 
     @objc private func send() {
@@ -179,18 +185,14 @@ class SendController: UIViewController {
             return
         }
 
-        adapter.sendSingle(to: address, amount: amount, gasLimit: estimateGasLimit, gasPrice: gasPrice)
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .userInitiated))
-                .observeOn(MainScheduler.instance)
-                .subscribe(onSuccess: { [weak self] _ in
-                    self?.addressTextField.text = ""
-                    self?.amountTextField.text = ""
-
-                    self?.showSuccess(address: address, amount: amount)
-                }, onError: { [weak self] error in
-                    self?.show(error: "Send failed: \(error)")
-                })
-                .disposed(by: disposeBag)
+        Task { [weak self, adapter, gasPrice] in
+            do {
+                try await adapter.send(to: address, amount: amount, gasLimit: estimateGasLimit, gasPrice: gasPrice)
+                self?.handleSuccess(address: address, amount: amount)
+            } catch {
+                self?.show(error: "Send failed: \(error)")
+            }
+        }
     }
 
     private func handle(feeHistory: FeeHistory) {
@@ -219,18 +221,24 @@ class SendController: UIViewController {
         }
     }
 
+    @MainActor
     private func show(error: String) {
         let alert = UIAlertController(title: "Send Error", message: error, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
     }
 
-    private func showSuccess(address: Address, amount: Decimal) {
+    @MainActor
+    private func handleSuccess(address: Address, amount: Decimal) {
+        addressTextField.text = ""
+        amountTextField.text = ""
+
         let alert = UIAlertController(title: "Success", message: "\(amount.description) sent to \(address)", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
     }
 
+    @MainActor
     private func updateGasLimit(value: Int?) {
         sendButton.isEnabled = value != nil
         estimateGasLimit = value

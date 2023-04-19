@@ -1,7 +1,6 @@
-import BigInt
 import Foundation
+import BigInt
 import HsToolKit
-import RxSwift
 
 public class L1FeeProvider {
     private let evmKit: EvmKit.Kit
@@ -13,25 +12,26 @@ public class L1FeeProvider {
     }
 }
 
-public extension L1FeeProvider {
-    func getL1Fee(gasPrice: GasPrice, gasLimit: Int, to: Address, value: BigUInt, data: Data) -> Single<BigUInt> {
+extension L1FeeProvider {
+
+    public func l1Fee(gasPrice: GasPrice, gasLimit: Int, to: Address, value: BigUInt, data: Data) async throws -> BigUInt {
         let rawTransaction = RawTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: to, value: value, data: data, nonce: 1)
         let encoded = TransactionBuilder.encode(rawTransaction: rawTransaction, signature: nil, chainId: evmKit.chain.id)
 
-        let data = L1FeeMethod(transaction: encoded).encodedABI()
+        let methodData = L1FeeMethod(transaction: encoded).encodedABI()
 
-        return evmKit.call(contractAddress: contractAddress, data: data)
-            .flatMap { data -> Single<BigUInt> in
-                guard let value = BigUInt(data.prefix(32).hs.hex, radix: 16) else {
-                    return Single.error(L1FeeError.invalidHex)
-                }
+        let data = try await evmKit.fetchCall(contractAddress: contractAddress, data: methodData)
 
-                return Single.just(value)
-            }
+        guard let value = BigUInt(data.prefix(32).hs.hex, radix: 16) else {
+            throw L1FeeError.invalidHex
+        }
+
+        return value
     }
 }
 
 extension L1FeeProvider {
+
     class L1FeeMethod: ContractMethod {
         let transaction: Data
 
@@ -47,19 +47,17 @@ extension L1FeeProvider {
             [transaction]
         }
     }
-}
 
-public extension L1FeeProvider {
-    enum L1FeeError: Error {
+    public enum L1FeeError: Error {
         case invalidHex
     }
+
 }
 
-public extension L1FeeProvider {
-    static func instance(evmKit: EvmKit.Kit, contractAddress: Address, minLogLevel: Logger.Level = .error) -> L1FeeProvider {
-        let logger = Logger(minLogLevel: minLogLevel)
-        let networkManager = NetworkManager(logger: logger)
+extension L1FeeProvider {
 
-        return L1FeeProvider(evmKit: evmKit, contractAddress: contractAddress)
+     public static func instance(evmKit: EvmKit.Kit, contractAddress: Address, minLogLevel: Logger.Level = .error) -> L1FeeProvider {
+        L1FeeProvider(evmKit: evmKit, contractAddress: contractAddress)
     }
+
 }

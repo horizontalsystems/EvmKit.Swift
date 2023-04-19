@@ -1,10 +1,9 @@
-import RxSwift
 import BigInt
 import HsToolKit
 
 protocol IRpcApiProvider {
     var source: String { get }
-    func single<T>(rpc: JsonRpc<T>) -> Single<T>
+    func fetch<T>(rpc: JsonRpc<T>) async throws -> T
 }
 
 protocol IApiStorage {
@@ -24,7 +23,7 @@ protocol IRpcSyncer: AnyObject {
     func start()
     func stop()
 
-    func single<T>(rpc: JsonRpc<T>) -> Single<T>
+    func fetch<T>(rpc: JsonRpc<T>) async throws -> T
 }
 
 protocol IRpcSyncerDelegate: AnyObject {

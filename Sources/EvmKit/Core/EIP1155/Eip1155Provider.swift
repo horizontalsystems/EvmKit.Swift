@@ -1,6 +1,5 @@
 import Foundation
 import BigInt
-import RxSwift
 import HsToolKit
 
 public class Eip1155Provider {
@@ -14,18 +13,17 @@ public class Eip1155Provider {
 
 extension Eip1155Provider {
 
-    public func getBalanceOf(contractAddress: Address, tokenId: BigUInt, address: Address) -> Single<BigUInt> {
-        let data = BalanceOfMethod(owner: address, tokenId: tokenId).encodedABI()
-        let rpc = RpcBlockchain.callRpc(contractAddress: contractAddress, data: data, defaultBlockParameter: .latest)
+    public func balanceOf(contractAddress: Address, tokenId: BigUInt, address: Address) async throws -> BigUInt {
+        let methodData = BalanceOfMethod(owner: address, tokenId: tokenId).encodedABI()
+        let rpc = RpcBlockchain.callRpc(contractAddress: contractAddress, data: methodData, defaultBlockParameter: .latest)
 
-        return rpcApiProvider.single(rpc: rpc)
-                .flatMap { data -> Single<BigUInt> in
-                    guard let value = BigUInt(data.prefix(32).hs.hex, radix: 16) else {
-                        return Single.error(BalanceError.invalidHex)
-                    }
+        let data = try await rpcApiProvider.fetch(rpc: rpc)
 
-                    return Single.just(value)
-                }
+        guard let value = BigUInt(data.prefix(32).hs.hex, radix: 16) else {
+            throw BalanceError.invalidHex
+        }
+
+        return value
     }
 
 }

@@ -1,5 +1,4 @@
 import Foundation
-import RxSwift
 import BigInt
 import HsToolKit
 
@@ -40,18 +39,25 @@ class WebSocketRpcSyncer {
         return currentRpcId
     }
 
-    private func send<T>(rpc: JsonRpc<T>, handler: RpcHandler) throws {
+    private func send<T>(rpc: JsonRpc<T>, handler: RpcHandler) throws -> Int {
         let rpcId = nextRpcId
 
         try rpcSocket.send(rpc: rpc, rpcId: rpcId)
 
         rpcHandlers[rpcId] = handler
+
+        return rpcId
     }
 
-    func send<T>(rpc: JsonRpc<T>, onSuccess: @escaping (T) -> (), onError: @escaping (Error) -> ()) {
-        queue.async { [weak self] in
+    private func cancel(rpcId: Int) {
+        let handler = rpcHandlers.removeValue(forKey: rpcId)
+        handler?.onError(RpcError.cancelled)
+    }
+
+    func send<T>(rpc: JsonRpc<T>, onSuccess: @escaping (T) -> (), onError: @escaping (Error) -> ()) -> Int? {
+        queue.sync { [weak self] in
             do {
-                try self?.send(
+                return try self?.send(
                         rpc: rpc,
                         handler: RpcHandler(
                                 onSuccess: { response in
@@ -66,12 +72,13 @@ class WebSocketRpcSyncer {
                 )
             } catch {
                 onError(error)
+                return nil
             }
         }
     }
 
     func subscribe<T>(subscription: RpcSubscription<T>, onSuccess: @escaping () -> (), onError: @escaping (Error) -> (), successHandler: @escaping (T) -> (), errorHandler: @escaping (Error) -> ()) {
-        send(
+        _ = send(
                 rpc: SubscribeJsonRpc(params: subscription.params),
                 onSuccess: { [weak self] subscriptionId in
                     self?.subscriptionHandlers[subscriptionId] = { response in
@@ -165,20 +172,40 @@ extension WebSocketRpcSyncer: IRpcSyncer {
         rpcSocket.stop()
     }
 
-    func single<T>(rpc: JsonRpc<T>) -> Single<T> {
-        Single<T>.create { [weak self] observer in
-            self?.send(
-                    rpc: rpc,
-                    onSuccess: { value in
-                        observer(.success(value))
-                    },
-                    onError: { error in
-                        observer(.error(error))
-                    }
-            )
+    func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
+        try Task.checkCancellation()
 
-            return Disposables.create()
+        var rpcId: Int?
+
+        let onCancel = { [weak self] in
+            if let rpcId = rpcId {
+                self?.cancel(rpcId: rpcId)
+            }
         }
+
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { [weak self] continuation in
+                rpcId = self?.send(
+                        rpc: rpc,
+                        onSuccess: { value in
+                            continuation.resume(returning: value)
+                        },
+                        onError: { error in
+                            continuation.resume(throwing: error)
+                        }
+                )
+            }
+        } onCancel: {
+            onCancel()
+        }
+    }
+
+}
+
+extension WebSocketRpcSyncer {
+
+    enum RpcError: Error {
+        case cancelled
     }
 
 }

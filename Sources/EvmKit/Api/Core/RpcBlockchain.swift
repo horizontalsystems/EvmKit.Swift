@@ -1,10 +1,10 @@
 import Foundation
-import RxSwift
 import BigInt
 import HsToolKit
+import HsExtensions
 
 class RpcBlockchain {
-    private var disposeBag = DisposeBag()
+    private var tasks = Set<AnyTask>()
 
     weak var delegate: IBlockchainDelegate?
 
@@ -33,15 +33,10 @@ class RpcBlockchain {
     }
 
     private func syncLastBlockHeight() {
-        syncer.single(rpc: BlockNumberJsonRpc())
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .observeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .subscribe(onSuccess: { [weak self] lastBlockHeight in
-                    self?.onUpdate(lastBlockHeight: lastBlockHeight)
-                }, onError: { _ in
-                    // todo
-                })
-                .disposed(by: disposeBag)
+        Task { [weak self, syncer] in
+            let lastBlockHeight = try await syncer.fetch(rpc: BlockNumberJsonRpc())
+            self?.onUpdate(lastBlockHeight: lastBlockHeight)
+        }.store(in: &tasks)
     }
 
     private func onUpdate(lastBlockHeight: Int) {
@@ -67,7 +62,7 @@ extension RpcBlockchain: IRpcSyncerDelegate {
             syncAccountState()
             syncLastBlockHeight()
         case .notReady(let error):
-            disposeBag = DisposeBag()
+            tasks = Set()
             syncState = .notSynced(error: error)
         }
     }
@@ -107,29 +102,27 @@ extension RpcBlockchain: IBlockchain {
     }
 
     func syncAccountState() {
-        Single.zip(
-                        syncer.single(rpc: GetBalanceJsonRpc(address: address, defaultBlockParameter: .latest)),
-                        syncer.single(rpc: GetTransactionCountJsonRpc(address: address, defaultBlockParameter: .latest))
-                )
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .observeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .subscribe(onSuccess: { [weak self] balance, nonce in
-                    self?.onUpdate(accountState: AccountState(balance: balance, nonce: nonce))
-                    self?.syncState = .synced
-                }, onError: { [weak self] error in
-                    guard let webSocketError = error as? HsToolKit.WebSocketStateError else {
-                        self?.syncState = .notSynced(error: error)
-                        return
-                    }
+        Task { [weak self, syncer, address] in
+            do {
+                async let balance = try syncer.fetch(rpc: GetBalanceJsonRpc(address: address, defaultBlockParameter: .latest))
+                async let nonce = try syncer.fetch(rpc: GetTransactionCountJsonRpc(address: address, defaultBlockParameter: .latest))
 
+                let accountState = try await AccountState(balance: balance, nonce: nonce)
+                self?.onUpdate(accountState: accountState)
+                self?.syncState = .synced
+            } catch {
+                if let webSocketError = error as? WebSocketStateError {
                     switch webSocketError {
                     case .connecting:
                         self?.syncState = .syncing(progress: nil)
                     case .couldNotConnect:
                         self?.syncState = .notSynced(error: webSocketError)
                     }
-                })
-                .disposed(by: disposeBag)
+                } else {
+                    self?.syncState = .notSynced(error: error)
+                }
+            }
+        }.store(in: &tasks)
     }
 
     var lastBlockHeight: Int? {
@@ -140,46 +133,44 @@ extension RpcBlockchain: IBlockchain {
         storage.accountState
     }
 
-    func nonceSingle(defaultBlockParameter: DefaultBlockParameter) -> Single<Int> {
-        syncer.single(rpc: GetTransactionCountJsonRpc(address: address, defaultBlockParameter: defaultBlockParameter))
+    func nonce(defaultBlockParameter: DefaultBlockParameter) async throws -> Int {
+        try await syncer.fetch(rpc: GetTransactionCountJsonRpc(address: address, defaultBlockParameter: defaultBlockParameter))
     }
 
-    func sendSingle(rawTransaction: RawTransaction, signature: Signature) -> Single<Transaction> {
-        let transaction = transactionBuilder.transaction(rawTransaction: rawTransaction, signature: signature)
+    func send(rawTransaction: RawTransaction, signature: Signature) async throws -> Transaction {
         let encoded = transactionBuilder.encode(rawTransaction: rawTransaction, signature: signature)
 
-        return syncer.single(rpc: SendRawTransactionJsonRpc(signedTransaction: encoded))
-                .map { _ in
-                    transaction
-                }
+        _ = try await syncer.fetch(rpc: SendRawTransactionJsonRpc(signedTransaction: encoded))
+
+        return transactionBuilder.transaction(rawTransaction: rawTransaction, signature: signature)
     }
 
-    func transactionReceiptSingle(transactionHash: Data) -> Single<RpcTransactionReceipt> {
-        syncer.single(rpc: GetTransactionReceiptJsonRpc(transactionHash: transactionHash))
+    func transactionReceipt(transactionHash: Data) async throws -> RpcTransactionReceipt {
+        try await syncer.fetch(rpc: GetTransactionReceiptJsonRpc(transactionHash: transactionHash))
     }
 
-    func transactionSingle(transactionHash: Data) -> Single<RpcTransaction> {
-        syncer.single(rpc: GetTransactionByHashJsonRpc(transactionHash: transactionHash))
+    func transaction(transactionHash: Data) async throws -> RpcTransaction {
+        try await syncer.fetch(rpc: GetTransactionByHashJsonRpc(transactionHash: transactionHash))
     }
 
-    func getStorageAt(contractAddress: Address, positionData: Data, defaultBlockParameter: DefaultBlockParameter) -> Single<Data> {
-        syncer.single(rpc: GetStorageAtJsonRpc(contractAddress: contractAddress, positionData: positionData, defaultBlockParameter: defaultBlockParameter))
+    func getStorageAt(contractAddress: Address, positionData: Data, defaultBlockParameter: DefaultBlockParameter) async throws -> Data {
+        try await syncer.fetch(rpc: GetStorageAtJsonRpc(contractAddress: contractAddress, positionData: positionData, defaultBlockParameter: defaultBlockParameter))
     }
 
-    func call(contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter) -> Single<Data> {
-        syncer.single(rpc: Self.callRpc(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter))
+    func call(contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter) async throws -> Data {
+        try await syncer.fetch(rpc: Self.callRpc(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter))
     }
 
-    func estimateGas(to: Address?, amount: BigUInt?, gasLimit: Int?, gasPrice: GasPrice, data: Data?) -> Single<Int> {
-        syncer.single(rpc: EstimateGasJsonRpc(from: address, to: to, amount: amount, gasLimit: gasLimit, gasPrice: gasPrice, data: data))
+    func estimateGas(to: Address?, amount: BigUInt?, gasLimit: Int?, gasPrice: GasPrice, data: Data?) async throws -> Int {
+        try await syncer.fetch(rpc: EstimateGasJsonRpc(from: address, to: to, amount: amount, gasLimit: gasLimit, gasPrice: gasPrice, data: data))
     }
 
-    func getBlock(blockNumber: Int) -> Single<RpcBlock> {
-        syncer.single(rpc: GetBlockByNumberJsonRpc(number: blockNumber))
+    func getBlock(blockNumber: Int) async throws -> RpcBlock {
+        try await syncer.fetch(rpc: GetBlockByNumberJsonRpc(number: blockNumber))
     }
 
-    func rpcSingle<T>(rpcRequest: JsonRpc<T>) -> Single<T> {
-        syncer.single(rpc: rpcRequest)
+    func fetch<T>(rpcRequest: JsonRpc<T>) async throws -> T {
+        try await syncer.fetch(rpc: rpcRequest)
     }
 
 }

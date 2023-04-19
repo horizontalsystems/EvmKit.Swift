@@ -1,15 +1,17 @@
 import Foundation
-import RxSwift
+import Combine
 import BigInt
 import HsToolKit
+import HsExtensions
 
 class ApiRpcSyncer {
     weak var delegate: IRpcSyncerDelegate?
 
     private let rpcApiProvider: IRpcApiProvider
-    private let reachabilityManager: IReachabilityManager
+    private let reachabilityManager: ReachabilityManager
     private let syncInterval: TimeInterval
-    private var disposeBag = DisposeBag()
+    private var cancellables = Set<AnyCancellable>()
+    private var tasks = Set<AnyTask>()
 
     private var isStarted = false
     private var timer: Timer?
@@ -22,17 +24,16 @@ class ApiRpcSyncer {
         }
     }
 
-    init(rpcApiProvider: IRpcApiProvider, reachabilityManager: IReachabilityManager, syncInterval: TimeInterval) {
+    init(rpcApiProvider: IRpcApiProvider, reachabilityManager: ReachabilityManager, syncInterval: TimeInterval) {
         self.rpcApiProvider = rpcApiProvider
         self.reachabilityManager = reachabilityManager
         self.syncInterval = syncInterval
 
-        reachabilityManager.reachabilityObservable
-                .observeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .subscribe(onNext: { [weak self] reachable in
+        reachabilityManager.$isReachable
+                .sink { [weak self] reachable in
                     self?.handleUpdate(reachable: reachable)
-                })
-                .disposed(by: disposeBag)
+                }
+                .store(in: &cancellables)
     }
 
     deinit {
@@ -40,12 +41,10 @@ class ApiRpcSyncer {
     }
 
     @objc func onFireTimer() {
-        rpcApiProvider.single(rpc: BlockNumberJsonRpc())
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .subscribe(onSuccess: { [weak self] lastBlockHeight in
-                    self?.delegate?.didUpdate(lastBlockHeight: lastBlockHeight)
-                })
-                .disposed(by: disposeBag)
+        Task { [weak self, rpcApiProvider] in
+            let lastBlockHeight = try await rpcApiProvider.fetch(rpc: BlockNumberJsonRpc())
+            self?.delegate?.didUpdate(lastBlockHeight: lastBlockHeight)
+        }.store(in: &tasks)
     }
 
     private func startTimer() {
@@ -89,13 +88,15 @@ extension ApiRpcSyncer: IRpcSyncer {
     func stop() {
         isStarted = false
 
-        disposeBag = DisposeBag()
+        cancellables = Set()
+        tasks = Set()
+
         state = .notReady(error: Kit.SyncError.notStarted)
         timer?.invalidate()
     }
 
-    func single<T>(rpc: JsonRpc<T>) -> Single<T> {
-        rpcApiProvider.single(rpc: rpc)
+    func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
+        try await rpcApiProvider.fetch(rpc: rpc)
     }
 
 }
