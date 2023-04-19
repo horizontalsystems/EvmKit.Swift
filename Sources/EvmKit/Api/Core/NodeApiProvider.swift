@@ -1,5 +1,4 @@
 import Foundation
-import RxSwift
 import BigInt
 import Alamofire
 import HsToolKit
@@ -24,47 +23,33 @@ class NodeApiProvider {
         self.headers = headers
     }
 
-    private func rpcResultSingle(urlIndex: Int = 0, parameters: [String: Any]) -> Single<Any> {
-        networkManager.single(
-                url: urls[urlIndex],
-                method: .post,
-                parameters: parameters,
-                mapper: self,
-                encoding: JSONEncoding.default,
-                headers: headers,
-                interceptor: self,
-                responseCacherBehavior: .doNotCache
-        )
-                .catchError { [weak self] error in
-                    guard let strongSelf = self else {
-                        throw Kit.KitError.weakReference
-                    }
+    private func rpcResult(urlIndex: Int = 0, parameters: [String: Any]) async throws -> Any {
+        do {
+            return try await networkManager.fetchJson(
+                    url: urls[urlIndex],
+                    method: .post,
+                    parameters: parameters,
+                    encoding: JSONEncoding.default,
+                    headers: headers,
+                    interceptor: self,
+                    responseCacherBehavior: .doNotCache
+            )
+        } catch {
+            let nextIndex = urlIndex + 1
 
-                    let nextIndex = urlIndex + 1
-
-                    if nextIndex < strongSelf.urls.count {
-                        return strongSelf.rpcResultSingle(urlIndex: nextIndex, parameters: parameters)
-                    } else {
-                        return Single.error(error)
-                    }
-                }
-    }
-
-}
-
-extension NodeApiProvider {
-
-    public enum RequestError: Error {
-        case invalidResponse(jsonObject: Any)
+            if nextIndex < urls.count {
+                return try await rpcResult(urlIndex: nextIndex, parameters: parameters)
+            } else {
+                throw error
+            }
+        }
     }
 
 }
 
 extension NodeApiProvider: RequestInterceptor {
 
-    public func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> ()) {
-        let error = NetworkManager.unwrap(error: error)
-
+    func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> ()) {
         if case let JsonRpcResponse.ResponseError.rpcError(rpcError) = error, rpcError.code == -32005 {
             var backoffSeconds = 1.0
 
@@ -80,39 +65,30 @@ extension NodeApiProvider: RequestInterceptor {
 
 }
 
-extension NodeApiProvider: IApiMapper {
-
-    func map(statusCode: Int, data: Any?) throws -> Any {
-        guard let response = data else {
-            throw NetworkManager.RequestError.invalidResponse(statusCode: statusCode, data: data)
-        }
-
-        return response
-    }
-
-}
-
 extension NodeApiProvider: IRpcApiProvider {
 
     var source: String {
         urls.compactMap { $0.host }.joined(separator: ", ")
     }
 
-    func single<T>(rpc: JsonRpc<T>) -> Single<T> {
+    func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
         currentRpcId += 1
 
-        return rpcResultSingle(parameters: rpc.parameters(id: currentRpcId))
-                .flatMap { jsonObject in
-                    do {
-                        guard let rpcResponse = JsonRpcResponse.response(jsonObject: jsonObject) else {
-                            throw RequestError.invalidResponse(jsonObject: jsonObject)
-                        }
+        let json = try await rpcResult(parameters: rpc.parameters(id: currentRpcId))
 
-                        return Single.just(try rpc.parse(response: rpcResponse))
-                    } catch {
-                        return Single.error(error)
-                    }
-                }
+        guard let rpcResponse = JsonRpcResponse.response(jsonObject: json) else {
+            throw RequestError.invalidResponse(jsonObject: json)
+        }
+
+        return try rpc.parse(response: rpcResponse)
+    }
+
+}
+
+extension NodeApiProvider {
+
+    public enum RequestError: Error {
+        case invalidResponse(jsonObject: Any)
     }
 
 }

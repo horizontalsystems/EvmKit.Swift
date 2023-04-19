@@ -1,5 +1,3 @@
-import RxSwift
-
 public class LegacyGasPriceProvider {
     private let evmKit: Kit
 
@@ -7,8 +5,8 @@ public class LegacyGasPriceProvider {
         self.evmKit = evmKit
     }
 
-    public func gasPriceSingle() -> Single<Int> {
-        evmKit.rpcSingle(rpcRequest: GasPriceJsonRpc())
+    public func gasPrice() async throws -> Int {
+        try await evmKit.fetch(rpcRequest: GasPriceJsonRpc())
     }
 
 }

@@ -1,5 +1,5 @@
 import Foundation
-import RxSwift
+import Combine
 import HdWalletKit
 import BigInt
 import HsCryptoKit
@@ -8,13 +8,13 @@ import HsToolKit
 public class Kit {
     public static let defaultGasLimit = 21_000
 
-    private let disposeBag = DisposeBag()
+    private var cancellables = Set<AnyCancellable>()
     private let maxGasLimit = 2_000_000
     private let defaultMinAmount: BigUInt = 1
 
-    private let lastBlockHeightSubject = PublishSubject<Int>()
-    private let syncStateSubject = PublishSubject<SyncState>()
-    private let accountStateSubject = PublishSubject<AccountState>()
+    private let lastBlockHeightSubject = PassthroughSubject<Int, Never>()
+    private let syncStateSubject = PassthroughSubject<SyncState, Never>()
+    private let accountStateSubject = PassthroughSubject<AccountState, Never>()
 
     private let blockchain: IBlockchain
     private let transactionManager: TransactionManager
@@ -51,12 +51,11 @@ public class Kit {
         state.accountState = blockchain.accountState
         state.lastBlockHeight = blockchain.lastBlockHeight
 
-        transactionManager.fullTransactionsObservable
-                .observeOn(ConcurrentDispatchQueueScheduler(qos: .userInitiated))
-                .subscribe(onNext: { [weak self] _ in
+        transactionManager.fullTransactionsPublisher
+                .sink { [weak self] _ in
                     self?.blockchain.syncAccountState()
-                })
-                .disposed(by: disposeBag)
+                }
+                .store(in: &cancellables)
     }
 
 }
@@ -85,24 +84,24 @@ extension Kit {
         address
     }
 
-    public var lastBlockHeightObservable: Observable<Int> {
-        lastBlockHeightSubject.asObservable()
+    public var lastBlockHeightPublisher: AnyPublisher<Int, Never> {
+        lastBlockHeightSubject.eraseToAnyPublisher()
     }
 
-    public var syncStateObservable: Observable<SyncState> {
-        syncStateSubject.asObservable()
+    public var syncStatePublisher: AnyPublisher<SyncState, Never> {
+        syncStateSubject.eraseToAnyPublisher()
     }
 
-    public var transactionsSyncStateObservable: Observable<SyncState> {
-        transactionSyncManager.stateObservable
+    public var transactionsSyncStatePublisher: AnyPublisher<SyncState, Never> {
+        transactionSyncManager.statePublisher
     }
 
-    public var accountStateObservable: Observable<AccountState> {
-        accountStateSubject.asObservable()
+    public var accountStatePublisher: AnyPublisher<AccountState, Never> {
+        accountStateSubject.eraseToAnyPublisher()
     }
 
-    public var allTransactionsObservable: Observable<([FullTransaction], Bool)> {
-        transactionManager.fullTransactionsObservable
+    public var allTransactionsPublisher: AnyPublisher<([FullTransaction], Bool), Never> {
+        transactionManager.fullTransactionsPublisher
     }
 
     public func start() {
@@ -119,16 +118,16 @@ extension Kit {
         transactionSyncManager.sync()
     }
 
-    public func transactionSingle(hash: Data) -> Single<FullTransaction> {
-        transactionManager.fullTransactionSingle(hash: hash)
+    public func fetchTransaction(hash: Data) async throws -> FullTransaction {
+        try await transactionManager.fetchFullTransaction(hash: hash)
     }
 
-    public func transactionsObservable(tagQueries: [TransactionTagQuery]) -> Observable<[FullTransaction]> {
-        transactionManager.fullTransactionsObservable(tagQueries: tagQueries)
+    public func transactionsPublisher(tagQueries: [TransactionTagQuery]) -> AnyPublisher<[FullTransaction], Never> {
+        transactionManager.fullTransactionsPublisher(tagQueries: tagQueries)
     }
 
-    public func transactionsSingle(tagQueries: [TransactionTagQuery], fromHash: Data? = nil, limit: Int? = nil) -> Single<[FullTransaction]> {
-        transactionManager.fullTransactionsSingle(tagQueries: tagQueries, fromHash: fromHash, limit: limit)
+    public func transactions(tagQueries: [TransactionTagQuery], fromHash: Data? = nil, limit: Int? = nil) -> [FullTransaction] {
+        transactionManager.fullTransactions(tagQueries: tagQueries, fromHash: fromHash, limit: limit)
     }
 
     public func pendingTransactions(tagQueries: [TransactionTagQuery]) -> [FullTransaction] {
@@ -143,41 +142,34 @@ extension Kit {
         transactionManager.fullTransactions(byHashes: hashes)
     }
 
-    public func rawTransaction(transactionData: TransactionData, gasPrice: GasPrice, gasLimit: Int, nonce: Int? = nil) -> Single<RawTransaction> {
-        rawTransaction(address: transactionData.to, value: transactionData.value, transactionInput: transactionData.input, gasPrice: gasPrice, gasLimit: gasLimit, nonce: nonce)
+    public func fetchRawTransaction(transactionData: TransactionData, gasPrice: GasPrice, gasLimit: Int, nonce: Int? = nil) async throws -> RawTransaction {
+        try await fetchRawTransaction(address: transactionData.to, value: transactionData.value, transactionInput: transactionData.input, gasPrice: gasPrice, gasLimit: gasLimit, nonce: nonce)
     }
 
-    public func rawTransaction(address: Address, value: BigUInt, transactionInput: Data = Data(), gasPrice: GasPrice, gasLimit: Int, nonce: Int? = nil) -> Single<RawTransaction> {
-        var syncNonceSingle = blockchain.nonceSingle(defaultBlockParameter: .pending)
+    public func fetchRawTransaction(address: Address, value: BigUInt, transactionInput: Data = Data(), gasPrice: GasPrice, gasLimit: Int, nonce: Int? = nil) async throws -> RawTransaction {
+        let resolvedNonce: Int
 
         if let nonce = nonce {
-            syncNonceSingle = Single<Int>.just(nonce)
+            resolvedNonce = nonce
+        } else {
+            resolvedNonce = try await blockchain.nonce(defaultBlockParameter: .pending)
         }
 
-        return syncNonceSingle.map { nonce in
-            RawTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: address, value: value, data: transactionInput, nonce: nonce)
-        }
+        return RawTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: address, value: value, data: transactionInput, nonce: resolvedNonce)
     }
 
-    public func nonceSingle(defaultBlockParameter: DefaultBlockParameter) -> Single<Int> {
-        blockchain.nonceSingle(defaultBlockParameter: defaultBlockParameter)
+    public func nonce(defaultBlockParameter: DefaultBlockParameter) async throws -> Int {
+        try await blockchain.nonce(defaultBlockParameter: defaultBlockParameter)
     }
 
     public func tagTokens() -> [TagToken] {
         transactionManager.tagTokens()
     }
 
-    public func sendSingle(rawTransaction: RawTransaction, signature: Signature) -> Single<FullTransaction> {
-        blockchain.sendSingle(rawTransaction: rawTransaction, signature: signature)
-                .flatMap { [weak self] transaction in
-                    guard let strongSelf = self else {
-                        throw Kit.KitError.weakReference
-                    }
-
-                    let fullTransactions = strongSelf.transactionManager.handle(transactions: [transaction])
-
-                    return Single.just(fullTransactions[0])
-                }
+    public func send(rawTransaction: RawTransaction, signature: Signature) async throws -> FullTransaction {
+        let transaction = try await blockchain.send(rawTransaction: rawTransaction, signature: signature)
+        let fullTransactions = transactionManager.handle(transactions: [transaction])
+        return fullTransactions[0]
     }
 
     public var debugInfo: String {
@@ -188,36 +180,36 @@ extension Kit {
         return lines.joined(separator: "\n")
     }
 
-    public func getStorageAt(contractAddress: Address, positionData: Data, defaultBlockParameter: DefaultBlockParameter = .latest) -> Single<Data> {
-        blockchain.getStorageAt(contractAddress: contractAddress, positionData: positionData, defaultBlockParameter: defaultBlockParameter)
+    public func fetchStorageAt(contractAddress: Address, positionData: Data, defaultBlockParameter: DefaultBlockParameter = .latest) async throws -> Data {
+        try await blockchain.getStorageAt(contractAddress: contractAddress, positionData: positionData, defaultBlockParameter: defaultBlockParameter)
     }
 
-    public func call(contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter = .latest) -> Single<Data> {
-        blockchain.call(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter)
+    public func fetchCall(contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter = .latest) async throws -> Data {
+        try await blockchain.call(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter)
     }
 
-    public func estimateGas(to: Address?, amount: BigUInt, gasPrice: GasPrice) -> Single<Int> {
+    public func fetchEstimateGas(to: Address?, amount: BigUInt, gasPrice: GasPrice) async throws -> Int {
         // without address - provide default gas limit
         guard let to = to else {
-            return Single.just(Kit.defaultGasLimit)
+            return Kit.defaultGasLimit
         }
 
         // if amount is 0 - set default minimum amount
         let resolvedAmount: BigUInt = amount == 0 ? defaultMinAmount : amount
 
-        return blockchain.estimateGas(to: to, amount: resolvedAmount, gasLimit: maxGasLimit, gasPrice: gasPrice, data: nil)
+        return try await blockchain.estimateGas(to: to, amount: resolvedAmount, gasLimit: maxGasLimit, gasPrice: gasPrice, data: nil)
     }
 
-    public func estimateGas(to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) -> Single<Int> {
-        blockchain.estimateGas(to: to, amount: amount, gasLimit: maxGasLimit, gasPrice: gasPrice, data: data)
+    public func fetchEstimateGas(to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) async throws -> Int {
+        try await blockchain.estimateGas(to: to, amount: amount, gasLimit: maxGasLimit, gasPrice: gasPrice, data: data)
     }
 
-    public func estimateGas(transactionData: TransactionData, gasPrice: GasPrice) -> Single<Int> {
-        estimateGas(to: transactionData.to, amount: transactionData.value, gasPrice: gasPrice, data: transactionData.input)
+    public func fetchEstimateGas(transactionData: TransactionData, gasPrice: GasPrice) async throws -> Int {
+        try await fetchEstimateGas(to: transactionData.to, amount: transactionData.value, gasPrice: gasPrice, data: transactionData.input)
     }
 
-    func rpcSingle<T>(rpcRequest: JsonRpc<T>) -> Single<T> {
-        blockchain.rpcSingle(rpcRequest: rpcRequest)
+    func fetch<T>(rpcRequest: JsonRpc<T>) async throws -> T {
+        try await blockchain.fetch(rpcRequest: rpcRequest)
     }
 
     public func add(transactionSyncer: ITransactionSyncer) {
@@ -264,7 +256,7 @@ extension Kit: IBlockchainDelegate {
 
         state.lastBlockHeight = lastBlockHeight
 
-        lastBlockHeightSubject.onNext(lastBlockHeight)
+        lastBlockHeightSubject.send(lastBlockHeight)
         transactionSyncManager.sync()
     }
 
@@ -274,11 +266,11 @@ extension Kit: IBlockchainDelegate {
         }
 
         state.accountState = accountState
-        accountStateSubject.onNext(accountState)
+        accountStateSubject.send(accountState)
     }
 
     func onUpdate(syncState: SyncState) {
-        syncStateSubject.onNext(syncState)
+        syncStateSubject.send(syncState)
     }
 
 }
@@ -380,18 +372,18 @@ extension Kit {
         return try sign(message: message, privateKey: privateKey, isLegacy: isLegacy)
     }
 
-    public static func callSingle(networkManager: NetworkManager, rpcSource: RpcSource, contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter = .latest) -> Single<Data> {
+    public static func call(networkManager: NetworkManager, rpcSource: RpcSource, contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter = .latest) async throws -> Data {
         let rpcApiProvider: IRpcApiProvider
 
         switch rpcSource {
         case let .http(urls, auth):
             rpcApiProvider = NodeApiProvider(networkManager: networkManager, urls: urls, auth: auth)
         case .webSocket:
-            return Single.error(RpcSourceError.websocketNotSupported)
+            throw RpcSourceError.websocketNotSupported
         }
 
         let rpc = RpcBlockchain.callRpc(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter)
-        return rpcApiProvider.single(rpc: rpc)
+        return try await rpcApiProvider.fetch(rpc: rpc)
     }
 
 }

@@ -1,125 +1,31 @@
 import Foundation
-import RxSwift
 import BigInt
 import Alamofire
 import HsToolKit
 
 class EtherscanTransactionProvider {
-    private let networkManager: SerialNetworkManager
+    private let networkManager: NetworkManager
     private let baseUrl: String
     private let apiKey: String
     private let address: Address
 
     init(baseUrl: String, apiKey: String, address: Address, logger: Logger) {
-        networkManager = SerialNetworkManager(requestInterval: 1, logger: logger)
+        networkManager = NetworkManager(interRequestInterval: 1, logger: logger)
         self.baseUrl = baseUrl
         self.apiKey = apiKey
         self.address = address
     }
 
-    private func apiSingle(params: [String: Any]) -> Single<[[String: Any]]> {
+    private func fetch(params: [String: Any]) async throws -> [[String: Any]] {
         let urlString = "\(baseUrl)/api"
 
         var parameters = params
         parameters["apikey"] = apiKey
 
-        return networkManager.single(url: urlString, method: .get, parameters: parameters, mapper: self, responseCacherBehavior: .doNotCache)
-    }
+        let json = try await networkManager.fetchJson(url: urlString, method: .get, parameters: parameters, responseCacherBehavior: .doNotCache)
 
-}
-
-extension EtherscanTransactionProvider: ITransactionProvider {
-
-    func transactionsSingle(startBlock: Int) -> Single<[ProviderTransaction]> {
-        let params: [String: Any] = [
-            "module": "account",
-            "action": "txlist",
-            "address": address.hex,
-            "startblock": startBlock,
-            "sort": "desc"
-        ]
-
-        return apiSingle(params: params).map { [weak self] array -> [ProviderTransaction] in
-            array.compactMap { try? ProviderTransaction(JSON: $0) }
-        }
-    }
-
-    func internalTransactionsSingle(startBlock: Int) -> Single<[ProviderInternalTransaction]> {
-        let params: [String: Any] = [
-            "module": "account",
-            "action": "txlistinternal",
-            "address": address.hex,
-            "startblock": startBlock,
-            "sort": "desc"
-        ]
-
-        return apiSingle(params: params).map { [weak self] array -> [ProviderInternalTransaction] in
-            array.compactMap { try? ProviderInternalTransaction(JSON: $0) }
-        }
-    }
-
-    func internalTransactionsSingle(transactionHash: Data) -> Single<[ProviderInternalTransaction]> {
-        let params: [String: Any] = [
-            "module": "account",
-            "action": "txlistinternal",
-            "txhash": transactionHash.hs.hexString,
-            "sort": "desc"
-        ]
-
-        return apiSingle(params: params).map { [weak self] array -> [ProviderInternalTransaction] in
-            array.compactMap { try? ProviderInternalTransaction(JSON: $0) }
-        }
-    }
-
-    func tokenTransactionsSingle(startBlock: Int) -> Single<[ProviderTokenTransaction]> {
-        let params: [String: Any] = [
-            "module": "account",
-            "action": "tokentx",
-            "address": address.hex,
-            "startblock": startBlock,
-            "sort": "desc"
-        ]
-
-        return apiSingle(params: params).map { [weak self] array -> [ProviderTokenTransaction] in
-            array.compactMap { try? ProviderTokenTransaction(JSON: $0) }
-        }
-    }
-
-    public func eip721TransactionsSingle(startBlock: Int) -> Single<[ProviderEip721Transaction]> {
-        let params: [String: Any] = [
-            "module": "account",
-            "action": "tokennfttx",
-            "address": address.hex,
-            "startblock": startBlock,
-            "sort": "desc"
-        ]
-
-        return apiSingle(params: params).map { [weak self] array -> [ProviderEip721Transaction] in
-            array.compactMap { try? ProviderEip721Transaction(JSON: $0) }
-        }
-    }
-
-    public func eip1155TransactionsSingle(startBlock: Int) -> Single<[ProviderEip1155Transaction]> {
-        let params: [String: Any] = [
-            "module": "account",
-            "action": "token1155tx",
-            "address": address.hex,
-            "startblock": startBlock,
-            "sort": "desc"
-        ]
-
-        return apiSingle(params: params).map { [weak self] array -> [ProviderEip1155Transaction] in
-            array.compactMap { try? ProviderEip1155Transaction(JSON: $0) }
-        }
-    }
-
-}
-
-extension EtherscanTransactionProvider: IApiMapper {
-
-    public func map(statusCode: Int, data: Any?) throws -> [[String: Any]] {
-        guard let map = data as? [String: Any] else {
-            throw NetworkManager.RequestError.invalidResponse(statusCode: statusCode, data: data)
+        guard let map = json as? [String: Any] else {
+            throw RequestError.invalidResponse
         }
 
         guard let status = map["status"] as? String else {
@@ -152,9 +58,91 @@ extension EtherscanTransactionProvider: IApiMapper {
 
 }
 
+extension EtherscanTransactionProvider: ITransactionProvider {
+
+    func transactions(startBlock: Int) async throws -> [ProviderTransaction] {
+        let params: [String: Any] = [
+            "module": "account",
+            "action": "txlist",
+            "address": address.hex,
+            "startblock": startBlock,
+            "sort": "desc"
+        ]
+
+        let array = try await fetch(params: params)
+        return array.compactMap { try? ProviderTransaction(JSON: $0) }
+    }
+
+    func internalTransactions(startBlock: Int) async throws -> [ProviderInternalTransaction] {
+        let params: [String: Any] = [
+            "module": "account",
+            "action": "txlistinternal",
+            "address": address.hex,
+            "startblock": startBlock,
+            "sort": "desc"
+        ]
+
+        let array = try await fetch(params: params)
+        return array.compactMap { try? ProviderInternalTransaction(JSON: $0) }
+    }
+
+    func internalTransactions(transactionHash: Data) async throws -> [ProviderInternalTransaction] {
+        let params: [String: Any] = [
+            "module": "account",
+            "action": "txlistinternal",
+            "txhash": transactionHash.hs.hexString,
+            "sort": "desc"
+        ]
+
+        let array = try await fetch(params: params)
+        return array.compactMap { try? ProviderInternalTransaction(JSON: $0) }
+    }
+
+    func tokenTransactions(startBlock: Int) async throws -> [ProviderTokenTransaction] {
+        let params: [String: Any] = [
+            "module": "account",
+            "action": "tokentx",
+            "address": address.hex,
+            "startblock": startBlock,
+            "sort": "desc"
+        ]
+
+        let array = try await fetch(params: params)
+        return array.compactMap { try? ProviderTokenTransaction(JSON: $0) }
+    }
+
+    public func eip721Transactions(startBlock: Int) async throws -> [ProviderEip721Transaction] {
+        let params: [String: Any] = [
+            "module": "account",
+            "action": "tokennfttx",
+            "address": address.hex,
+            "startblock": startBlock,
+            "sort": "desc"
+        ]
+
+        let array = try await fetch(params: params)
+        return array.compactMap { try? ProviderEip721Transaction(JSON: $0) }
+    }
+
+    public func eip1155Transactions(startBlock: Int) async throws -> [ProviderEip1155Transaction] {
+        let params: [String: Any] = [
+            "module": "account",
+            "action": "token1155tx",
+            "address": address.hex,
+            "startblock": startBlock,
+            "sort": "desc"
+        ]
+
+        let array = try await fetch(params: params)
+        return array.compactMap { try? ProviderEip1155Transaction(JSON: $0) }
+    }
+
+}
+
 extension EtherscanTransactionProvider {
 
     public enum RequestError: Error {
+        case invalidResponse
         case invalidStatus
         case responseError(message: String?, result: String?)
         case invalidResult

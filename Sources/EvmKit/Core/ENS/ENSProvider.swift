@@ -2,7 +2,6 @@
 
 import Foundation
 import HsToolKit
-import RxSwift
 
 public class ENSProvider {
     private static let registryAddress = try! Address(hex: "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e")
@@ -12,36 +11,30 @@ public class ENSProvider {
         self.rpcApiProvider = rpcApiProvider
     }
 
-    private func resolve(name: String, level: Level) -> Single<Address> {
+    private func resolve(name: String, level: Level) async throws -> Address {
         let nameHash = NameHash.nameHash(name: name)
-        let data = ResolverMethod(hash: nameHash, method: level.name).encodedABI()
-        let rpc = RpcBlockchain.callRpc(contractAddress: level.address, data: data, defaultBlockParameter: .latest)
+        let methodData = ResolverMethod(hash: nameHash, method: level.name).encodedABI()
+        let rpc = RpcBlockchain.callRpc(contractAddress: level.address, data: methodData, defaultBlockParameter: .latest)
 
-        return rpcApiProvider.single(rpc: rpc)
-                .flatMap { data -> Single<Address> in
-                    do {
-                        let address = data.prefix(32).suffix(20).hs.hexString
-                        return try Single.just(Address(hex: address))
-                    } catch {
-                        return Single.error(error)
-                    }
-                }
+        let data = try await rpcApiProvider.fetch(rpc: rpc)
+        let address = data.prefix(32).suffix(20).hs.hexString
+        return try Address(hex: address)
     }
 
 }
 
 extension ENSProvider {
 
-    public func address(domain: String) -> Single<Address> {
-        resolve(name: domain, level: .resolver)
-                .flatMap { resolverAddress in
-                    self.resolve(name: domain, level: .addr(resolver: resolverAddress))
-                            .catchError { error in
-                                Single.error(ResolveError.noAnyAddress)
-                            }
-                }.catchError { error in
-                    Single.error(ResolveError.noAnyResolver)
-                }
+    public func resolveAddress(domain: String) async throws -> Address {
+        guard let resolverAddress = try? await resolve(name: domain, level: .resolver) else {
+            throw ResolveError.noAnyResolver
+        }
+
+        guard let address = try? await resolve(name: domain, level: .addr(resolver: resolverAddress)) else {
+            throw ResolveError.noAnyAddress
+        }
+
+        return address
     }
 
 }

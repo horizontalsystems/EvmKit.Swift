@@ -1,20 +1,21 @@
 import Foundation
-import RxSwift
+import Combine
 import BigInt
+import HsExtensions
 
 class TransactionSyncManager {
     private let transactionManager: TransactionManager
-    private let disposeBag = DisposeBag()
+    private var tasks = Set<AnyTask>()
 
     private var _syncers = [ITransactionSyncer]()
 
     private let queue = DispatchQueue(label: "io.horizontal-systems.ethereum-kit.transaction-sync-manager", qos: .utility)
 
-    private let stateSubject = PublishSubject<SyncState>()
+    private let stateSubject = PassthroughSubject<SyncState, Never>()
     private var _state: SyncState = .notSynced(error: Kit.SyncError.notStarted) {
         didSet {
             if _state != oldValue {
-                stateSubject.onNext(_state)
+                stateSubject.send(_state)
             }
         }
     }
@@ -81,25 +82,37 @@ class TransactionSyncManager {
 
         _state = .syncing(progress: nil)
 
-        Single.zip(_syncers.map { $0.transactionsSingle() })
-                .subscribeOn(ConcurrentDispatchQueueScheduler(qos: .utility))
-                .subscribe(
-                        onSuccess: { [weak self] resultArray in
-                            self?.handleSuccess(resultArray: resultArray)
-                        },
-                        onError: { [weak self] error in
-                            self?.handleError(error: error)
+        Task { [weak self, _syncers] in
+            do {
+                let resultArray = try await withThrowingTaskGroup(of: ([Transaction], Bool).self) { group in
+                    _syncers.forEach { syncer in
+                        group.addTask {
+                            try await syncer.transactions()
                         }
-                )
-                .disposed(by: disposeBag)
+                    }
+
+                    var array = [([Transaction], Bool)]()
+
+                    for try await result in group {
+                        array.append(result)
+                    }
+
+                    return array
+                }
+
+                self?.handleSuccess(resultArray: resultArray)
+            } catch {
+                self?.handleError(error: error)
+            }
+        }.store(in: &tasks)
     }
 
 }
 
 extension TransactionSyncManager {
 
-    var stateObservable: Observable<SyncState> {
-        stateSubject.asObservable()
+    var statePublisher: AnyPublisher<SyncState, Never> {
+        stateSubject.eraseToAnyPublisher()
     }
 
     var state: SyncState {

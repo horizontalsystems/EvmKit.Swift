@@ -1,5 +1,4 @@
 import Foundation
-import RxSwift
 import BigInt
 
 protocol IBlockchain {
@@ -15,16 +14,16 @@ protocol IBlockchain {
     var lastBlockHeight: Int? { get }
     var accountState: AccountState? { get }
 
-    func nonceSingle(defaultBlockParameter: DefaultBlockParameter) -> Single<Int>
-    func sendSingle(rawTransaction: RawTransaction, signature: Signature) -> Single<Transaction>
+    func nonce(defaultBlockParameter: DefaultBlockParameter) async throws -> Int
+    func send(rawTransaction: RawTransaction, signature: Signature) async throws -> Transaction
 
-    func transactionReceiptSingle(transactionHash: Data) -> Single<RpcTransactionReceipt>
-    func transactionSingle(transactionHash: Data) -> Single<RpcTransaction>
-    func getStorageAt(contractAddress: Address, positionData: Data, defaultBlockParameter: DefaultBlockParameter) -> Single<Data>
-    func call(contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter) -> Single<Data>
-    func estimateGas(to: Address?, amount: BigUInt?, gasLimit: Int?, gasPrice: GasPrice, data: Data?) -> Single<Int>
-    func getBlock(blockNumber: Int) -> Single<RpcBlock>
-    func rpcSingle<T>(rpcRequest: JsonRpc<T>) -> Single<T>
+    func transactionReceipt(transactionHash: Data) async throws -> RpcTransactionReceipt
+    func transaction(transactionHash: Data) async throws -> RpcTransaction
+    func getStorageAt(contractAddress: Address, positionData: Data, defaultBlockParameter: DefaultBlockParameter) async throws -> Data
+    func call(contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter) async throws -> Data
+    func estimateGas(to: Address?, amount: BigUInt?, gasLimit: Int?, gasPrice: GasPrice, data: Data?) async throws -> Int
+    func getBlock(blockNumber: Int) async throws -> RpcBlock
+    func fetch<T>(rpcRequest: JsonRpc<T>) async throws -> T
 }
 
 protocol IBlockchainDelegate: AnyObject {
@@ -34,7 +33,7 @@ protocol IBlockchainDelegate: AnyObject {
 }
 
 public protocol ITransactionSyncer {
-    func transactionsSingle() -> Single<([Transaction], Bool)>
+    func transactions() async throws -> ([Transaction], Bool)
 }
 
 protocol ITransactionManagerDelegate: AnyObject {
@@ -56,10 +55,10 @@ public protocol ITransactionDecorator {
 }
 
 public protocol ITransactionProvider {
-    func transactionsSingle(startBlock: Int) -> Single<[ProviderTransaction]>
-    func internalTransactionsSingle(startBlock: Int) -> Single<[ProviderInternalTransaction]>
-    func internalTransactionsSingle(transactionHash: Data) -> Single<[ProviderInternalTransaction]>
-    func tokenTransactionsSingle(startBlock: Int) -> Single<[ProviderTokenTransaction]>
-    func eip721TransactionsSingle(startBlock: Int) -> Single<[ProviderEip721Transaction]>
-    func eip1155TransactionsSingle(startBlock: Int) -> Single<[ProviderEip1155Transaction]>
+    func transactions(startBlock: Int) async throws -> [ProviderTransaction]
+    func internalTransactions(startBlock: Int) async throws -> [ProviderInternalTransaction]
+    func internalTransactions(transactionHash: Data) async throws -> [ProviderInternalTransaction]
+    func tokenTransactions(startBlock: Int) async throws -> [ProviderTokenTransaction]
+    func eip721Transactions(startBlock: Int) async throws -> [ProviderEip721Transaction]
+    func eip1155Transactions(startBlock: Int) async throws -> [ProviderEip1155Transaction]
 }

@@ -1,5 +1,5 @@
 import Foundation
-import RxSwift
+import Combine
 import BigInt
 
 class TransactionManager {
@@ -8,10 +8,9 @@ class TransactionManager {
     private let decorationManager: DecorationManager
     private let blockchain: IBlockchain
     private let transactionProvider: ITransactionProvider
-    private let disposeBag = DisposeBag()
 
-    private let fullTransactionsSubject = PublishSubject<([FullTransaction], Bool)>()
-    private let fullTransactionsWithTagsSubject = PublishSubject<[(transaction: FullTransaction, tags: [TransactionTag])]>()
+    private let fullTransactionsSubject = PassthroughSubject<([FullTransaction], Bool), Never>()
+    private let fullTransactionsWithTagsSubject = PassthroughSubject<[(transaction: FullTransaction, tags: [TransactionTag])], Never>()
 
     init(userAddress: Address, storage: TransactionStorage, decorationManager: DecorationManager, blockchain: IBlockchain, transactionProvider: ITransactionProvider) {
         self.userAddress = userAddress
@@ -51,8 +50,8 @@ class TransactionManager {
 
 extension TransactionManager {
 
-    var fullTransactionsObservable: Observable<([FullTransaction], Bool)> {
-        fullTransactionsSubject.asObservable()
+    var fullTransactionsPublisher: AnyPublisher<([FullTransaction], Bool), Never> {
+        fullTransactionsSubject.eraseToAnyPublisher()
     }
 
     func etherTransferTransactionData(to: Address, value: BigUInt) -> TransactionData {
@@ -63,71 +62,53 @@ extension TransactionManager {
         )
     }
 
-    func fullTransactionSingle(hash: Data) -> Single<FullTransaction> {
-        blockchain.transactionSingle(transactionHash: hash)
-                .flatMap { [weak self] rpcTransaction -> Single<FullRpcTransaction> in
-                    guard let strongSelf = self else {
-                        throw Kit.KitError.weakReference
-                    }
+    func fetchFullTransaction(hash: Data) async throws -> FullTransaction {
+        let rpcTransaction = try await blockchain.transaction(transactionHash: hash)
 
-                    if let blockNumber = rpcTransaction.blockNumber {
-                        return Single.zip(
-                                        strongSelf.blockchain.transactionReceiptSingle(transactionHash: hash),
-                                        strongSelf.blockchain.getBlock(blockNumber: blockNumber),
-                                        strongSelf.transactionProvider.internalTransactionsSingle(transactionHash: hash)
-                        )
-                                .map { rpcTransactionReceipt, rpcBlock, providerInternalTransactions in
-                                    FullRpcTransaction(
-                                            rpcTransaction: rpcTransaction,
-                                            rpcTransactionReceipt: rpcTransactionReceipt,
-                                            rpcBlock: rpcBlock,
-                                            providerInternalTransactions: providerInternalTransactions
-                                    )
-                                }
-                    } else {
-                        return Single.just(FullRpcTransaction(rpcTransaction: rpcTransaction))
-                    }
-                }
-                .flatMap { [weak self] fullRpcTransaction in
-                    guard let strongSelf = self else {
-                        throw Kit.KitError.weakReference
-                    }
+        let fullRpcTransaction: FullRpcTransaction
 
-                    return Single.just(try strongSelf.decorationManager.decorate(fullRpcTransaction: fullRpcTransaction))
-                }
+        if let blockNumber = rpcTransaction.blockNumber {
+            async let rpcTransactionReceipt = try blockchain.transactionReceipt(transactionHash: hash)
+            async let rpcBlock = try blockchain.getBlock(blockNumber: blockNumber)
+            async let providerInternalTransactions = try transactionProvider.internalTransactions(transactionHash: hash)
+
+            fullRpcTransaction = try await FullRpcTransaction(
+                    rpcTransaction: rpcTransaction,
+                    rpcTransactionReceipt: rpcTransactionReceipt,
+                    rpcBlock: rpcBlock,
+                    providerInternalTransactions: providerInternalTransactions
+            )
+        } else {
+            fullRpcTransaction = FullRpcTransaction(rpcTransaction: rpcTransaction)
+        }
+
+        return try decorationManager.decorate(fullRpcTransaction: fullRpcTransaction)
     }
 
-    func fullTransactionsObservable(tagQueries: [TransactionTagQuery]) -> Observable<[FullTransaction]> {
-        fullTransactionsWithTagsSubject.asObservable()
-            .map { transactionsWithTags in
-                transactionsWithTags.compactMap { (transaction: FullTransaction, tags: [TransactionTag]) -> FullTransaction? in
-                    for tagQuery in tagQueries {
-                        for tag in tags {
-                            if tag.conforms(tagQuery: tagQuery) {
-                                return transaction
+    func fullTransactionsPublisher(tagQueries: [TransactionTagQuery]) -> AnyPublisher<[FullTransaction], Never> {
+        fullTransactionsWithTagsSubject
+                .map { transactionsWithTags in
+                    transactionsWithTags.compactMap { (transaction: FullTransaction, tags: [TransactionTag]) -> FullTransaction? in
+                        for tagQuery in tagQueries {
+                            for tag in tags {
+                                if tag.conforms(tagQuery: tagQuery) {
+                                    return transaction
+                                }
                             }
                         }
-                    }
 
-                    return nil
+                        return nil
+                    }
                 }
-            }
-            .filter { transactions in transactions.count > 0 }
+                .filter { transactions in
+                    transactions.count > 0
+                }
+                .eraseToAnyPublisher()
     }
 
-    func fullTransactionsSingle(tagQueries: [TransactionTagQuery], fromHash: Data?, limit: Int?) -> Single<[FullTransaction]> {
-        Single.create { [weak self] observer in
-            guard let strongSelf = self else {
-                observer(.error(Kit.KitError.weakReference))
-                return Disposables.create()
-            }
-
-            let transactions = strongSelf.storage.transactionsBefore(tagQueries: tagQueries, hash: fromHash, limit: limit)
-            let fullTransactions = strongSelf.decorationManager.decorate(transactions: transactions)
-            observer(.success(fullTransactions))
-
-            return Disposables.create()
-        }
+    func fullTransactions(tagQueries: [TransactionTagQuery], fromHash: Data?, limit: Int?) -> [FullTransaction] {
+        let transactions = storage.transactionsBefore(tagQueries: tagQueries, hash: fromHash, limit: limit)
+        return decorationManager.decorate(transactions: transactions)
     }
 
     func pendingFullTransactions(tagQueries: [TransactionTagQuery]) -> [FullTransaction] {
@@ -165,8 +146,8 @@ extension TransactionManager {
 
         storage.save(tags: tagRecords)
 
-        fullTransactionsSubject.onNext((fullTransactions, initial))
-        fullTransactionsWithTagsSubject.onNext(fullTransactionsWithTags)
+        fullTransactionsSubject.send((fullTransactions, initial))
+        fullTransactionsWithTagsSubject.send(fullTransactionsWithTags)
 
         return fullTransactions
     }

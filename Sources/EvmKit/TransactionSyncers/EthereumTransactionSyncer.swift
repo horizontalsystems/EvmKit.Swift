@@ -1,4 +1,3 @@
-import RxSwift
 import BigInt
 
 class EthereumTransactionSyncer {
@@ -13,7 +12,7 @@ class EthereumTransactionSyncer {
     }
 
     private func handle(providerTransactions: [ProviderTransaction]) {
-        guard let maxBlockNumber = providerTransactions.map { $0.blockNumber }.max() else {
+        guard let maxBlockNumber = providerTransactions.map({ $0.blockNumber }).max() else {
             return
         }
 
@@ -25,47 +24,48 @@ class EthereumTransactionSyncer {
 
 extension EthereumTransactionSyncer: ITransactionSyncer {
 
-    func transactionsSingle() -> Single<([Transaction], Bool)> {
+    func transactions() async throws -> ([Transaction], Bool) {
         let lastBlockNumber = (try? storage.syncerState(syncerId: syncerId))?.lastBlockNumber ?? 0
         let initial = lastBlockNumber == 0
 
-        return provider.transactionsSingle(startBlock: lastBlockNumber + 1)
-                .do(onSuccess: { [weak self] providerTransactions in
-                    self?.handle(providerTransactions: providerTransactions)
-                })
-                .map { transactions in
-                    let array = transactions.map { tx -> Transaction in
-                        var isFailed: Bool
+        do {
+            let transactions = try await provider.transactions(startBlock: lastBlockNumber + 1)
 
-                        if let status = tx.txReceiptStatus {
-                            isFailed = status != 1
-                        } else if let isError = tx.isError {
-                            isFailed = isError != 0
-                        } else if let gasUsed = tx.gasUsed {
-                            isFailed = tx.gasLimit == gasUsed
-                        } else {
-                            isFailed = false
-                        }
+            handle(providerTransactions: transactions)
 
-                        return Transaction(
-                                hash: tx.hash,
-                                timestamp: tx.timestamp,
-                                isFailed: isFailed,
-                                blockNumber: tx.blockNumber,
-                                transactionIndex: tx.transactionIndex,
-                                from: tx.from,
-                                to: tx.to,
-                                value: tx.value,
-                                input: tx.input,
-                                nonce: tx.nonce,
-                                gasPrice: tx.gasPrice,
-                                gasUsed: tx.gasUsed
-                        )
-                    }
+            let array = transactions.map { tx -> Transaction in
+                var isFailed: Bool
 
-                    return (array, initial)
+                if let status = tx.txReceiptStatus {
+                    isFailed = status != 1
+                } else if let isError = tx.isError {
+                    isFailed = isError != 0
+                } else if let gasUsed = tx.gasUsed {
+                    isFailed = tx.gasLimit == gasUsed
+                } else {
+                    isFailed = false
                 }
-                .catchErrorJustReturn(([], initial))
+
+                return Transaction(
+                        hash: tx.hash,
+                        timestamp: tx.timestamp,
+                        isFailed: isFailed,
+                        blockNumber: tx.blockNumber,
+                        transactionIndex: tx.transactionIndex,
+                        from: tx.from,
+                        to: tx.to,
+                        value: tx.value,
+                        input: tx.input,
+                        nonce: tx.nonce,
+                        gasPrice: tx.gasPrice,
+                        gasUsed: tx.gasUsed
+                )
+            }
+
+            return (array, initial)
+        } catch {
+            return ([], initial)
+        }
     }
 
 }
