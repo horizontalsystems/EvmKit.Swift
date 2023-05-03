@@ -39,6 +39,9 @@ public class ContractMethodHelper {
             case let argument as Data:
                 data += pad(data: BigUInt(arguments.count * 32 + arraysData.count).serialize())
                 arraysData += pad(data: BigUInt(argument.count).serialize()) + argument
+            case let argument as DynamicStructParameter:
+                data += pad(data: BigUInt(arguments.count * 32 + arraysData.count).serialize())
+                arraysData += encodedABI(methodId: Data(), arguments: argument.arguments)
             default:
                 ()
             }
