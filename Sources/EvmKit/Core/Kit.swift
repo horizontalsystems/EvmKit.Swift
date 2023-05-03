@@ -9,7 +9,6 @@ public class Kit {
     public static let defaultGasLimit = 21_000
 
     private var cancellables = Set<AnyCancellable>()
-    private let maxGasLimit = 2_000_000
     private let defaultMinAmount: BigUInt = 1
 
     private let lastBlockHeightSubject = PassthroughSubject<Int, Never>()
@@ -197,11 +196,11 @@ extension Kit {
         // if amount is 0 - set default minimum amount
         let resolvedAmount: BigUInt = amount == 0 ? defaultMinAmount : amount
 
-        return try await blockchain.estimateGas(to: to, amount: resolvedAmount, gasLimit: maxGasLimit, gasPrice: gasPrice, data: nil)
+        return try await blockchain.estimateGas(to: to, amount: resolvedAmount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: nil)
     }
 
     public func fetchEstimateGas(to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) async throws -> Int {
-        try await blockchain.estimateGas(to: to, amount: amount, gasLimit: maxGasLimit, gasPrice: gasPrice, data: data)
+        try await blockchain.estimateGas(to: to, amount: amount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: data)
     }
 
     public func fetchEstimateGas(transactionData: TransactionData, gasPrice: GasPrice) async throws -> Int {
