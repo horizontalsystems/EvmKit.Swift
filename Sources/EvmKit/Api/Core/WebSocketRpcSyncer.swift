@@ -51,7 +51,7 @@ class WebSocketRpcSyncer {
 
     private func cancel(rpcId: Int) {
         let handler = rpcHandlers.removeValue(forKey: rpcId)
-        handler?.onError(RpcError.cancelled)
+        handler?.onError(NetworkManager.TaskError())
     }
 
     func send<T>(rpc: JsonRpc<T>, onSuccess: @escaping (T) -> (), onError: @escaping (Error) -> ()) -> Int? {
@@ -198,14 +198,6 @@ extension WebSocketRpcSyncer: IRpcSyncer {
         } onCancel: {
             onCancel()
         }
-    }
-
-}
-
-extension WebSocketRpcSyncer {
-
-    enum RpcError: Error {
-        case cancelled
     }
 
 }
