@@ -19,6 +19,10 @@ extension RpcSource {
         infuraHttp(subdomain: "mainnet", projectId: projectId, projectSecret: projectSecret)
     }
 
+    public static func ethereumSepoliaHttp(projectId: String, projectSecret: String? = nil) -> RpcSource {
+        infuraHttp(subdomain: "sepolia", projectId: projectId, projectSecret: projectSecret)
+    }
+
     public static func ropstenInfuraHttp(projectId: String, projectSecret: String? = nil) -> RpcSource {
         infuraHttp(subdomain: "ropsten", projectId: projectId, projectSecret: projectSecret)
     }
@@ -71,6 +75,10 @@ extension RpcSource {
 
     public static func binanceSmartChainWebSocket() -> RpcSource {
         .webSocket(url: URL(string: "wss://bsc-ws-node.nariox.org:443")!, auth: nil)
+    }
+
+    public static func bscTestNet() -> RpcSource {
+        .http(urls: [URL(string: "https://data-seed-prebsc-1-s1.binance.org:8545")!], auth: nil)
     }
 
     public static func polygonRpcHttp() -> RpcSource {
