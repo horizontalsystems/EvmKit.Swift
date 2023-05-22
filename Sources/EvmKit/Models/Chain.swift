@@ -150,4 +150,23 @@ extension Chain {
         )
     }
 
+    public static var ethereumSepolia: Chain {
+        Chain(
+                id: 11155111,
+                coinType: 1,
+                syncInterval: 15,
+                isEIP1559Supported: true
+        )
+    }
+
+    public static var binanceSmartChainTestNet: Chain {
+        Chain(
+                id: 97,
+                coinType: 1,
+                syncInterval: 15,
+                gasLimit: 10_000_000,
+                isEIP1559Supported: false
+        )
+    }
+
 }
