@@ -19,13 +19,13 @@ class BlockchainState: Record {
         case lastBlockHeight
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         lastBlockHeight = row[Columns.lastBlockHeight]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.primaryKey] = primaryKey
         container[Columns.lastBlockHeight] = lastBlockHeight
     }

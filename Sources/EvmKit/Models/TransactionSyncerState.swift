@@ -20,14 +20,14 @@ class TransactionSyncerState: Record {
         case lastBlockNumber
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         syncerId = row[Columns.syncerId]
         lastBlockNumber = row[Columns.lastBlockNumber]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    public override func encode(to container: inout PersistenceContainer) {
+    public override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.syncerId] = syncerId
         container[Columns.lastBlockNumber] = lastBlockNumber
     }
