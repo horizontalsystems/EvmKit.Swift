@@ -196,9 +196,9 @@ extension TransactionStorage {
                       \(limitClause)
                       """
 
-            let rows = try Row.fetchAll(db.makeSelectStatement(sql: sql), arguments: StatementArguments(arguments))
-            return rows.map { row -> Transaction in
-                Transaction(row: row)
+            let rows = try Row.fetchAll(db.makeStatement(sql: sql), arguments: StatementArguments(arguments))
+            return try rows.map { row -> Transaction in
+                try Transaction(row: row)
             }
         }
     }
@@ -263,9 +263,9 @@ extension TransactionStorage {
                       \(whereClause)
                       """
 
-            let rows = try Row.fetchAll(db.makeSelectStatement(sql: sql), arguments: StatementArguments(arguments))
-            return rows.map { row -> Transaction in
-                Transaction(row: row)
+            let rows = try Row.fetchAll(db.makeStatement(sql: sql), arguments: StatementArguments(arguments))
+            return try rows.map { row -> Transaction in
+                try Transaction(row: row)
             }
         }
     }

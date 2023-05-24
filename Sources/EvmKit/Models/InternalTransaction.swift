@@ -34,7 +34,7 @@ public class InternalTransaction: Record {
         case traceId
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         hash = row[Columns.hash]
         blockNumber = row[Columns.blockNumber]
         from = Address(raw: row[Columns.from])
@@ -42,10 +42,10 @@ public class InternalTransaction: Record {
         value = row[Columns.value]
         traceId = row[Columns.traceId]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    override public func encode(to container: inout PersistenceContainer) {
+    override public func encode(to container: inout PersistenceContainer) throws {
         container[Columns.hash] = hash
         container[Columns.blockNumber] = blockNumber
         container[Columns.from] = from.raw
