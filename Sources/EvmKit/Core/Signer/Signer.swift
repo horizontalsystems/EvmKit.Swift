@@ -29,12 +29,8 @@ public class Signer {
         try ethSigner.sign(message: message, isLegacy: isLegacy)
     }
 
-    public func parseTypedData(rawJson: Data) throws -> EIP712TypedData {
-        try ethSigner.parseTypedData(rawJson: rawJson)
-    }
-
-    public func signTypedData(message: Data) throws -> Data {
-        try ethSigner.signTypedData(message: message)
+    public func sign(eip712TypedData: EIP712TypedData) throws -> Data {
+        try ethSigner.sign(eip712TypedData: eip712TypedData)
     }
 
 }

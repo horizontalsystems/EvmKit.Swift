@@ -19,9 +19,39 @@ public struct EIP712TypedData: Codable {
     public let primaryType: String
     public let domain: JSON
     public let message: JSON
+
+    public static func parseFrom(rawJson: Data) throws -> EIP712TypedData {
+        let decoder = JSONDecoder()
+        return try decoder.decode(EIP712TypedData.self, from: rawJson)
+    }
+
+    private func sanitized(json: JSON, type: String) -> JSON {
+        switch json {
+        case .object(let object):
+            var sanitizedObject = [String: JSON]()
+
+            for (key, value) in object {
+                if let currentTypes = types[type], let currentType = currentTypes.first(where: { $0.name == key }) {
+                    sanitizedObject[key] = sanitized(json: value, type: currentType.type)
+                }
+            }
+
+            return .object(sanitizedObject)
+        case .array(let array):
+            let sanitizedArray = array.map { sanitized(json: $0, type: type.replacingOccurrences(of: "[]", with: "")) }
+            return .array(sanitizedArray)
+        default:
+            return json
+        }
+    }
+
 }
 
 extension EIP712TypedData {
+
+    public var sanitizedMessage: JSON {
+        sanitized(json: message, type: primaryType)
+    }
 
     public var typeHash: Data {
         encodeType(primaryType: primaryType).sha3
