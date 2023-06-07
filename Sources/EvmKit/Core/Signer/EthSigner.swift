@@ -23,16 +23,9 @@ class EthSigner {
         try Crypto.ellipticSign(isLegacy ? message : prefixed(message: message), privateKey: privateKey)
     }
 
-    public func parseTypedData(rawJson: Data) throws -> EIP712TypedData {
-        let decoder = JSONDecoder()
-        return try decoder.decode(EIP712TypedData.self, from: rawJson)
-    }
-
-    func signTypedData(message: Data) throws -> Data {
-        let typedData = try parseTypedData(rawJson: message)
-        let hashedMessage = try typedData.signHash()
-
-        return try Crypto.ellipticSign(hashedMessage, privateKey: privateKey)
+    func sign(eip712TypedData: EIP712TypedData) throws -> Data {
+        let signHash = try eip712TypedData.signHash()
+        return try Crypto.ellipticSign(signHash, privateKey: privateKey)
     }
 
 }
