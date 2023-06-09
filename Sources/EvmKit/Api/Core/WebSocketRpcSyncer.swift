@@ -39,7 +39,7 @@ class WebSocketRpcSyncer {
         return currentRpcId
     }
 
-    private func send<T>(rpc: JsonRpc<T>, handler: RpcHandler) throws -> Int {
+    private func _send<T>(rpc: JsonRpc<T>, handler: RpcHandler) throws -> Int {
         let rpcId = nextRpcId
 
         try rpcSocket.send(rpc: rpc, rpcId: rpcId)
@@ -50,14 +50,16 @@ class WebSocketRpcSyncer {
     }
 
     private func cancel(rpcId: Int) {
-        let handler = rpcHandlers.removeValue(forKey: rpcId)
-        handler?.onError(NetworkManager.TaskError())
+        queue.async {
+            let handler = self.rpcHandlers.removeValue(forKey: rpcId)
+            handler?.onError(NetworkManager.TaskError())
+        }
     }
 
     func send<T>(rpc: JsonRpc<T>, onSuccess: @escaping (T) -> (), onError: @escaping (Error) -> ()) -> Int? {
         queue.sync { [weak self] in
             do {
-                return try self?.send(
+                return try self?._send(
                         rpc: rpc,
                         handler: RpcHandler(
                                 onSuccess: { response in
