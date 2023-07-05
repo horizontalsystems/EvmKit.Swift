@@ -32,7 +32,7 @@ class TransactionSyncManager {
 
         for transaction in transactions {
             if let existingTransaction = dictionary[transaction.hash] {
-                dictionary[transaction.hash] = _merge(lhsTransaction: existingTransaction, rhsTransaction: transaction)
+                dictionary[transaction.hash] = Self.merge(lhsTransaction: existingTransaction, rhsTransaction: transaction)
             } else {
                 dictionary[transaction.hash] = transaction
             }
@@ -41,11 +41,11 @@ class TransactionSyncManager {
         transactionManager.handle(transactions: Array(dictionary.values), initial: initial)
     }
 
-    private func _merge(lhsTransaction lhs: Transaction, rhsTransaction rhs: Transaction) -> Transaction {
+    static func merge(lhsTransaction lhs: Transaction, rhsTransaction rhs: Transaction) -> Transaction {
         Transaction(
                 hash: lhs.hash,
                 timestamp: lhs.timestamp,
-                isFailed: lhs.isFailed,
+                isFailed: lhs.isFailed || rhs.isFailed,
                 blockNumber: lhs.blockNumber ?? rhs.blockNumber,
                 transactionIndex: lhs.transactionIndex ?? rhs.transactionIndex,
                 from: lhs.from ?? rhs.from,
