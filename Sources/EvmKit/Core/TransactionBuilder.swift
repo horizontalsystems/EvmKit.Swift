@@ -1,7 +1,7 @@
 import Foundation
 import HsCryptoKit
 
-class TransactionBuilder {
+public class TransactionBuilder {
     private let chainId: Int
     private let address: Address
 
@@ -42,7 +42,7 @@ class TransactionBuilder {
 }
 
 extension TransactionBuilder {
-    static func encode(rawTransaction: RawTransaction, signature: Signature?, chainId: Int = 1) -> Data {
+    public static func encode(rawTransaction: RawTransaction, signature: Signature?, chainId: Int = 1) -> Data {
         let signatureArray: [Any?] = [
             signature?.v,
             signature?.r,
