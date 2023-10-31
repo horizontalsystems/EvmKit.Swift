@@ -21,14 +21,14 @@ class Eip20Balance: Record {
         case value
     }
 
-    required init(row: Row) {
+    required init(row: Row) throws {
         contractAddress = row[Columns.contractAddress]
         value = row[Columns.value]
 
-        super.init(row: row)
+        try super.init(row: row)
     }
 
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.contractAddress] = contractAddress
         container[Columns.value] = value
     }
