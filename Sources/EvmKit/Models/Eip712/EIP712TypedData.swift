@@ -177,14 +177,14 @@ public extension EIP712TypedData {
             return try ABIValue(address, type: .address)
         } else if type.starts(with: "uint") {
             let size = try parseIntSize(type: type, prefix: "uint")
-            if let value = data?.floatValue {
+            if let value = data?.doubleValue {
                 return try ABIValue(Int(value), type: .uint(bits: size))
             } else if let value = data?.stringValue, let bigInt = BigUInt(value: value) {
                 return try ABIValue(bigInt, type: .uint(bits: size))
             }
         } else if type.starts(with: "int") {
             let size = try parseIntSize(type: type, prefix: "int")
-            if let value = data?.floatValue {
+            if let value = data?.doubleValue {
                 return try ABIValue(Int(value), type: .int(bits: size))
             } else if let value = data?.stringValue, let bigInt = BigInt(value: value) {
                 return try ABIValue(bigInt, type: .int(bits: size))
@@ -194,7 +194,7 @@ public extension EIP712TypedData {
                 if value.starts(with: "0x"), let hex = value.hs.hexData {
                     return try ABIValue(hex, type: .bytes(length))
                 } else {
-                    return try ABIValue(Data(bytes: Array(value.utf8)), type: .bytes(length))
+                    return try ABIValue(Data(Array(value.utf8)), type: .bytes(length))
                 }
             }
         }
