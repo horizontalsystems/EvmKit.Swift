@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import HsCryptoKit
-import BigInt
 
 class TransactionSigner {
     private let chainId: Int
@@ -13,9 +13,9 @@ class TransactionSigner {
 
     func sign(rawTransaction: RawTransaction) throws -> Data {
         switch rawTransaction.gasPrice {
-        case .legacy(let legacyGasPrice):
+        case let .legacy(legacyGasPrice):
             return try signEip155(rawTransaction: rawTransaction, legacyGasPrice: legacyGasPrice)
-        case .eip1559(let maxFeePerGas, let maxPriorityFeePerGas):
+        case let .eip1559(maxFeePerGas, maxPriorityFeePerGas):
             return try signEip1559(rawTransaction: rawTransaction, maxFeePerGas: maxFeePerGas, maxPriorityFeePerGas: maxPriorityFeePerGas)
         }
     }
@@ -27,11 +27,11 @@ class TransactionSigner {
             rawTransaction.gasLimit,
             rawTransaction.to.raw,
             rawTransaction.value,
-            rawTransaction.data
+            rawTransaction.data,
         ]
 
         if chainId != 0 {
-            toEncode.append(contentsOf: [chainId, 0, 0 ]) // EIP155
+            toEncode.append(contentsOf: [chainId, 0, 0]) // EIP155
         }
 
         let encodedData = RLP.encode(toEncode)
@@ -50,7 +50,7 @@ class TransactionSigner {
             rawTransaction.to.raw,
             rawTransaction.value,
             rawTransaction.data,
-            []
+            [],
         ]
 
         let encodedData = RLP.encode(toEncode)
@@ -72,18 +72,17 @@ class TransactionSigner {
 
     func signatureLegacy(from data: Data) -> Signature {
         Signature(
-                v: Int(data[64]) + (chainId == 0 ? 27 : (35 + 2 * chainId)),
-                r: BigUInt(data[..<32].hs.hex, radix: 16)!,
-                s: BigUInt(data[32..<64].hs.hex, radix: 16)!
+            v: Int(data[64]) + (chainId == 0 ? 27 : (35 + 2 * chainId)),
+            r: BigUInt(data[..<32].hs.hex, radix: 16)!,
+            s: BigUInt(data[32 ..< 64].hs.hex, radix: 16)!
         )
     }
 
     func signatureEip1559(from data: Data) -> Signature {
         Signature(
-                v: Int(data[64]),
-                r: BigUInt(data[..<32].hs.hex, radix: 16)!,
-                s: BigUInt(data[32..<64].hs.hex, radix: 16)!
+            v: Int(data[64]),
+            r: BigUInt(data[..<32].hs.hex, radix: 16)!,
+            s: BigUInt(data[32 ..< 64].hs.hex, radix: 16)!
         )
     }
-
 }

@@ -12,7 +12,7 @@ public enum EthereumChecksumType {
     case wanchain
 }
 
-public struct EthereumChecksum {
+public enum EthereumChecksum {
     public static func computeString(for data: Data, type: EthereumChecksumType) -> String {
         let addressString = data.hs.hex
         let hashInput = addressString.data(using: .ascii)!

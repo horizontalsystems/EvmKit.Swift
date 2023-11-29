@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import GRDB
-import BigInt
 
 public class InternalTransaction: Record {
     public let hash: Data
@@ -53,5 +53,4 @@ public class InternalTransaction: Record {
         container[Columns.value] = value
         container[Columns.traceId] = traceId
     }
-
 }

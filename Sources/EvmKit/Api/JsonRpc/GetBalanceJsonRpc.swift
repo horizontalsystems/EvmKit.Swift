@@ -1,11 +1,10 @@
 import BigInt
 
 class GetBalanceJsonRpc: JsonRpc<BigUInt> {
-
     init(address: Address, defaultBlockParameter: DefaultBlockParameter) {
         super.init(
-                method: "eth_getBalance",
-                params: [address.hex, defaultBlockParameter.raw]
+            method: "eth_getBalance",
+            params: [address.hex, defaultBlockParameter.raw]
         )
     }
 
@@ -16,5 +15,4 @@ class GetBalanceJsonRpc: JsonRpc<BigUInt> {
 
         return value
     }
-
 }

@@ -11,7 +11,7 @@ class BlockchainState: Record {
     }
 
     override class var databaseTableName: String {
-        return "blockchainStates"
+        "blockchainStates"
     }
 
     enum Columns: String, ColumnExpression {
@@ -29,5 +29,4 @@ class BlockchainState: Record {
         container[Columns.primaryKey] = primaryKey
         container[Columns.lastBlockHeight] = lastBlockHeight
     }
-
 }

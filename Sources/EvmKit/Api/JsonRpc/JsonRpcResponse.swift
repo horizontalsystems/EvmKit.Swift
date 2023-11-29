@@ -6,9 +6,9 @@ public enum JsonRpcResponse {
 
     var id: Int {
         switch self {
-        case .success(let response):
+        case let .success(response):
             return response.id
-        case .error(let response):
+        case let .error(response):
             return response.id
         }
     }
@@ -24,12 +24,10 @@ public enum JsonRpcResponse {
 
         return nil
     }
-
 }
 
-extension JsonRpcResponse {
-
-    public struct SuccessResponse: ImmutableMappable {
+public extension JsonRpcResponse {
+    struct SuccessResponse: ImmutableMappable {
         let version: String
         let id: Int
         var result: Any?
@@ -46,7 +44,7 @@ extension JsonRpcResponse {
         }
     }
 
-    public struct ErrorResponse: ImmutableMappable {
+    struct ErrorResponse: ImmutableMappable {
         let version: String
         let id: Int
         let error: RpcError
@@ -58,7 +56,7 @@ extension JsonRpcResponse {
         }
     }
 
-    public struct RpcError: ImmutableMappable {
+    struct RpcError: ImmutableMappable {
         public let code: Int
         public let message: String
         public let data: Any?
@@ -70,9 +68,8 @@ extension JsonRpcResponse {
         }
     }
 
-    public enum ResponseError: Error {
+    enum ResponseError: Error {
         case rpcError(JsonRpcResponse.RpcError)
         case invalidResult(value: Any?)
     }
-
 }

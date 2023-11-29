@@ -5,7 +5,7 @@ public class TransactionTag {
     public let `protocol`: TagProtocol?
     public let contractAddress: Address?
 
-    public init(type: TagType, `protocol`: TagProtocol? = nil, contractAddress: Address? = nil) {
+    public init(type: TagType, protocol: TagProtocol? = nil, contractAddress: Address? = nil) {
         self.type = type
         self.protocol = `protocol`
         self.contractAddress = contractAddress
@@ -26,26 +26,22 @@ public class TransactionTag {
 
         return true
     }
-
 }
 
 extension TransactionTag: Hashable {
-
     public func hash(into hasher: inout Hasher) {
         hasher.combine(type)
         hasher.combine(`protocol`)
         hasher.combine(contractAddress)
     }
 
-    public static func ==(lhs: TransactionTag, rhs: TransactionTag) -> Bool {
+    public static func == (lhs: TransactionTag, rhs: TransactionTag) -> Bool {
         lhs.type == rhs.type && lhs.protocol == rhs.protocol && lhs.contractAddress == rhs.contractAddress
     }
-
 }
 
-extension TransactionTag {
-
-    public enum TagProtocol: String, DatabaseValueConvertible {
+public extension TransactionTag {
+    enum TagProtocol: String, DatabaseValueConvertible {
         case native
         case eip20
         case eip721
@@ -57,7 +53,7 @@ extension TransactionTag {
 
         public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> TagProtocol? {
             switch dbValue.storage {
-            case .string(let string):
+            case let .string(string):
                 return TagProtocol(rawValue: string)
             default:
                 return nil
@@ -65,7 +61,7 @@ extension TransactionTag {
         }
     }
 
-    public enum TagType: String, DatabaseValueConvertible {
+    enum TagType: String, DatabaseValueConvertible {
         case incoming
         case outgoing
         case approve
@@ -78,12 +74,11 @@ extension TransactionTag {
 
         public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> TagType? {
             switch dbValue.storage {
-            case .string(let string):
+            case let .string(string):
                 return TagType(rawValue: string)
             default:
                 return nil
             }
         }
     }
-
 }

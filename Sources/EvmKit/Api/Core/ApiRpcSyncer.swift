@@ -1,8 +1,8 @@
-import Foundation
-import Combine
 import BigInt
-import HsToolKit
+import Combine
+import Foundation
 import HsExtensions
+import HsToolKit
 
 class ApiRpcSyncer {
     weak var delegate: IRpcSyncerDelegate?
@@ -30,10 +30,10 @@ class ApiRpcSyncer {
         self.syncInterval = syncInterval
 
         reachabilityManager.$isReachable
-                .sink { [weak self] reachable in
-                    self?.handleUpdate(reachable: reachable)
-                }
-                .store(in: &cancellables)
+            .sink { [weak self] reachable in
+                self?.handleUpdate(reachable: reachable)
+            }
+            .store(in: &cancellables)
     }
 
     deinit {
@@ -70,11 +70,9 @@ class ApiRpcSyncer {
             timer?.invalidate()
         }
     }
-
 }
 
 extension ApiRpcSyncer: IRpcSyncer {
-
     var source: String {
         "API \(rpcApiProvider.source)"
     }
@@ -98,5 +96,4 @@ extension ApiRpcSyncer: IRpcSyncer {
     func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
         try await rpcApiProvider.fetch(rpc: rpc)
     }
-
 }

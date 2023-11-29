@@ -2,9 +2,8 @@ import Foundation
 import HsCryptoKit
 
 class NameHash {
-
     static func nameHash(name: String) -> String {
-        var hash = Data.init(count: 32)
+        var hash = Data(count: 32)
         let labels = name.components(separatedBy: ".")
         for label in labels.reversed() {
             hash.append(Sha3.keccak256(label.hs.data))
@@ -12,5 +11,4 @@ class NameHash {
         }
         return hash.hs.hexString
     }
-
 }

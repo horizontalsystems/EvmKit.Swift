@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 import HsCryptoKit
 
 public struct EIP712Type: Codable {
@@ -27,7 +27,7 @@ public struct EIP712TypedData: Codable {
 
     private func sanitized(json: JSON, type: String) -> JSON {
         switch json {
-        case .object(let object):
+        case let .object(object):
             var sanitizedObject = [String: JSON]()
 
             for (key, value) in object {
@@ -37,32 +37,30 @@ public struct EIP712TypedData: Codable {
             }
 
             return .object(sanitizedObject)
-        case .array(let array):
+        case let .array(array):
             let sanitizedArray = array.map { sanitized(json: $0, type: type.replacingOccurrences(of: "[]", with: "")) }
             return .array(sanitizedArray)
         default:
             return json
         }
     }
-
 }
 
-extension EIP712TypedData {
-
-    public var sanitizedMessage: JSON {
+public extension EIP712TypedData {
+    var sanitizedMessage: JSON {
         sanitized(json: message, type: primaryType)
     }
 
-    public var typeHash: Data {
+    var typeHash: Data {
         encodeType(primaryType: primaryType).sha3
     }
 
-    public func signHash() throws -> Data {
+    func signHash() throws -> Data {
         let data = try Data(bytes: [0x19, 0x01]) + encodeData(data: domain, type: "EIP712Domain").sha3 + encodeData(data: message, type: primaryType).sha3
         return data.sha3
     }
 
-    func findDependencies(primaryType: String, dependencies: Set<String> = Set<String>()) -> Set<String> {
+    internal func findDependencies(primaryType: String, dependencies: Set<String> = Set<String>()) -> Set<String> {
         var found = dependencies
         var primaryType = primaryType
 
@@ -84,7 +82,7 @@ extension EIP712TypedData {
         return found
     }
 
-    public func encodeType(primaryType: String) -> Data {
+    func encodeType(primaryType: String) -> Data {
         var depSet = findDependencies(primaryType: primaryType)
         depSet.remove(primaryType)
 
@@ -97,7 +95,7 @@ extension EIP712TypedData {
         return encoded.data(using: .utf8) ?? Data()
     }
 
-    public func encodeData(data: JSON, type: String) throws -> Data {
+    func encodeData(data: JSON, type: String) throws -> Data {
         let encoder = ABIEncoder()
         var values: [ABIValue] = []
 
@@ -135,7 +133,7 @@ extension EIP712TypedData {
         if case let .array(jsons) = value {
             let components = rawType.components(separatedBy: CharacterSet(charactersIn: "[]"))
 
-            if components.count == 3 && components[1].isEmpty {
+            if components.count == 3, components[1].isEmpty {
 //                print("array regular")
                 let rawType = components[0]
                 let encoder = ABIEncoder()
@@ -144,9 +142,9 @@ extension EIP712TypedData {
                 }
                 try encoder.encode(tuple: values)
                 return try ABIValue(encoder.data.sha3, type: .bytes(32))
-            } else if components.count == 3 && !components[1].isEmpty {
+            } else if components.count == 3, !components[1].isEmpty {
 //                print("array indexed")
-                let num = String(components[1].filter { "0"..."9" ~= $0 })
+                let num = String(components[1].filter { "0" ... "9" ~= $0 })
 
                 guard Int(num) != nil else {
                     throw AbiError.invalidArrayIndex
@@ -168,7 +166,7 @@ extension EIP712TypedData {
         return try makeABIValue(name: name, data: value, type: rawType)
     }
 
-    private func makeABIValue(name: String, data: JSON?, type: String) throws -> ABIValue {
+    private func makeABIValue(name _: String, data: JSON?, type: String) throws -> ABIValue {
         if type == "string", let value = data?.stringValue, let valueData = value.data(using: .utf8) {
             return try ABIValue(valueData.sha3, type: .bytes(32))
         } else if type == "bytes", let value = data?.stringValue, let valueData = value.hs.hexData {
@@ -216,17 +214,15 @@ extension EIP712TypedData {
         return size
     }
 
-    enum AbiError: Error {
+    internal enum AbiError: Error {
         case invalidIntSize
         case invalidArray
         case invalidArrayIndex
         case invalidAbi
     }
-
 }
 
 private extension BigInt {
-
     init?(value: String) {
         if value.starts(with: "0x") {
             self.init(String(value.dropFirst(2)), radix: 16)
@@ -234,11 +230,9 @@ private extension BigInt {
             self.init(value)
         }
     }
-
 }
 
 private extension BigUInt {
-
     init?(value: String) {
         if value.starts(with: "0x") {
             self.init(String(value.dropFirst(2)), radix: 16)
@@ -246,13 +240,10 @@ private extension BigUInt {
             self.init(value)
         }
     }
-
 }
 
 private extension Data {
-
     var sha3: Data {
         Crypto.sha3(self)
     }
-
 }

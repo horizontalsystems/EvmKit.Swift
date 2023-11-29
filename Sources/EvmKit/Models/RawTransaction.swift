@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 
 public class RawTransaction {
     let gasPrice: GasPrice
@@ -17,13 +17,10 @@ public class RawTransaction {
         self.data = data
         self.nonce = nonce
     }
-
 }
 
 extension RawTransaction: CustomStringConvertible {
-
     public var description: String {
         "RAW TRANSACTION [gasPrice: \(gasPrice); gasLimit: \(gasLimit); to: \(to); value: \(value); data: \(data.hs.hexString)]"
     }
-
 }

@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 
 class DecorationManager {
     private let userAddress: Address
@@ -19,7 +19,7 @@ class DecorationManager {
         if transactions.count > 100 {
             internalTransactions = storage.internalTransactions()
         } else {
-            let hashes = transactions.map { $0.hash }
+            let hashes = transactions.map(\.hash)
             internalTransactions = storage.internalTransactions(hashes: hashes)
         }
 
@@ -33,7 +33,7 @@ class DecorationManager {
     }
 
     private func contractMethod(input: Data?) -> ContractMethod? {
-        guard let input = input else {
+        guard let input else {
             return nil
         }
 
@@ -58,12 +58,12 @@ class DecorationManager {
         }
 
         return UnknownTransactionDecoration(
-                userAddress: userAddress,
-                fromAddress: from,
-                toAddress: to,
-                value: value,
-                internalTransactions: internalTransactions,
-                eventInstances: eventInstances
+            userAddress: userAddress,
+            fromAddress: from,
+            toAddress: to,
+            value: value,
+            internalTransactions: internalTransactions,
+            eventInstances: eventInstances
         )
     }
 
@@ -76,11 +76,9 @@ class DecorationManager {
 
         return eventInstances
     }
-
 }
 
 extension DecorationManager {
-
     func add(methodDecorator: IMethodDecorator) {
         methodDecorators.append(methodDecorator)
     }
@@ -119,12 +117,12 @@ extension DecorationManager {
 
         return transactions.map { transaction in
             let decoration = decoration(
-                    from: transaction.from,
-                    to: transaction.to,
-                    value: transaction.value,
-                    contractMethod: contractMethod(input: transaction.input),
-                    internalTransactions: internalTransactionsMap[transaction.hash] ?? [],
-                    eventInstances: eventInstancesMap[transaction.hash] ?? []
+                from: transaction.from,
+                to: transaction.to,
+                value: transaction.value,
+                contractMethod: contractMethod(input: transaction.input),
+                internalTransactions: internalTransactionsMap[transaction.hash] ?? [],
+                eventInstances: eventInstancesMap[transaction.hash] ?? []
             )
 
             return FullTransaction(transaction: transaction, decoration: decoration)
@@ -145,23 +143,20 @@ extension DecorationManager {
         let transaction = fullRpcTransaction.transaction(timestamp: timestamp)
 
         let decoration = decoration(
-                from: transaction.from,
-                to: transaction.to,
-                value: transaction.value,
-                contractMethod: contractMethod(input: transaction.input),
-                internalTransactions: fullRpcTransaction.providerInternalTransactions.map { $0.internalTransaction },
-                eventInstances: fullRpcTransaction.rpcTransactionReceipt.map { eventInstances(logs: $0.logs) } ?? []
+            from: transaction.from,
+            to: transaction.to,
+            value: transaction.value,
+            contractMethod: contractMethod(input: transaction.input),
+            internalTransactions: fullRpcTransaction.providerInternalTransactions.map(\.internalTransaction),
+            eventInstances: fullRpcTransaction.rpcTransactionReceipt.map { eventInstances(logs: $0.logs) } ?? []
         )
 
         return FullTransaction(transaction: transaction, decoration: decoration)
     }
-
 }
 
 extension DecorationManager {
-
     public enum RpcTransactionError: Error {
         case noTimestamp
     }
-
 }

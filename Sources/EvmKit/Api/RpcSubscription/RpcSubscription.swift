@@ -5,8 +5,7 @@ class RpcSubscription<T> {
         self.params = params
     }
 
-    func parse(result: Any) throws -> T {
+    func parse(result _: Any) throws -> T {
         fatalError("This method should be overridden")
     }
-
 }

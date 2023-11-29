@@ -8,5 +8,4 @@ public class FullTransaction {
         self.transaction = transaction
         self.decoration = decoration
     }
-
 }

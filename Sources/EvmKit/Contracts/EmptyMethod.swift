@@ -1,2 +1,1 @@
-public class EmptyMethod: ContractMethod {
-}
+public class EmptyMethod: ContractMethod {}

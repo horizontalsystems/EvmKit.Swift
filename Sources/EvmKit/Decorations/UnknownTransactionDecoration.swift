@@ -18,7 +18,7 @@ open class UnknownTransactionDecoration: TransactionDecoration {
         self.eventInstances = eventInstances
     }
 
-    public override func tags() -> [TransactionTag] {
+    override public func tags() -> [TransactionTag] {
         Array(Set(tagsFromInternalTransactions + tagsFromEventInstances))
     }
 
@@ -39,7 +39,7 @@ open class UnknownTransactionDecoration: TransactionDecoration {
         }
 
         // if has value or has internalTxs must add Evm tag
-        if outgoingValue == 0 && incomingValue == 0 {
+        if outgoingValue == 0, incomingValue == 0 {
             return []
         }
 
@@ -63,5 +63,4 @@ open class UnknownTransactionDecoration: TransactionDecoration {
 
         return tags
     }
-
 }

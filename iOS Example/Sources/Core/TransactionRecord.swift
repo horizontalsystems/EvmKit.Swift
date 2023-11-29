@@ -1,5 +1,5 @@
-import Foundation
 import EvmKit
+import Foundation
 
 struct TransactionRecord {
     let transactionHash: String

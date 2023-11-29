@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import ObjectMapper
-import BigInt
 
 public struct RpcBlock: ImmutableMappable {
     public let hash: Data
@@ -12,5 +12,4 @@ public struct RpcBlock: ImmutableMappable {
         number = try map.value("number", using: HexIntTransform())
         timestamp = try map.value("timestamp", using: HexIntTransform())
     }
-
 }

@@ -1,6 +1,6 @@
 import Foundation
-import HsCryptoKit
 import GRDB
+import HsCryptoKit
 import HsExtensions
 
 public struct Address {
@@ -8,7 +8,7 @@ public struct Address {
 
     public init(raw: Data) {
         if raw.count == 32 {
-            self.raw = raw[12..<raw.count]
+            self.raw = raw[12 ..< raw.count]
         } else {
             self.raw = raw
         }
@@ -31,18 +31,16 @@ public struct Address {
     public var eip55: String {
         EIP55.format(address: raw.hs.hex)
     }
-
 }
 
 extension Address {
-
     private static func character(_ str: String, _ i: Int) -> String {
         String(str[str.index(str.startIndex, offsetBy: i)])
     }
 
     private static func isCheckSumAddress(hex: String) throws {
         let addressHash: String = Crypto.sha3(hex.lowercased().data(using: .ascii)!).hs.hex
-        for i in 0..<40 {
+        for i in 0 ..< 40 {
             let hashSymbol = character(addressHash, i)
 
             guard let int = Int(hashSymbol, radix: 16) else {
@@ -75,54 +73,45 @@ extension Address {
             try isCheckSumAddress(hex: hex)
         }
     }
-
 }
 
 extension Address: CustomStringConvertible {
-
     public var description: String {
         hex
     }
-
 }
 
 extension Address: Hashable {
-
     public func hash(into hasher: inout Hasher) {
         hasher.combine(raw)
     }
 
-    public static func ==(lhs: Address, rhs: Address) -> Bool {
+    public static func == (lhs: Address, rhs: Address) -> Bool {
         lhs.raw == rhs.raw
     }
-
 }
 
 extension Address: DatabaseValueConvertible {
-
     public var databaseValue: DatabaseValue {
         raw.databaseValue
     }
 
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Address? {
         switch dbValue.storage {
-        case .blob(let data):
+        case let .blob(data):
             return Address(raw: data)
         default:
             return nil
         }
     }
-
 }
 
-extension Address {
-
-    public enum ValidationError: Error {
+public extension Address {
+    enum ValidationError: Error {
         case invalidHex
         case invalidChecksum
         case invalidAddressLength
         case invalidSymbols
         case wrongAddressPrefix
     }
-
 }

@@ -23,35 +23,35 @@ public final class ABIEncoder {
     /// Encodes an `ABIValue`
     public func encode(_ value: ABIValue) throws {
         switch value {
-        case .uint(_, let value):
+        case let .uint(_, value):
             try encode(value)
-        case .int(_, let value):
+        case let .int(_, value):
             try encode(value)
-        case .address(let address):
+        case let .address(address):
             try encode(address)
-        case .bool(let value):
+        case let .bool(value):
             try encode(value)
-        case .fixed(_, _, let value):
+        case let .fixed(_, _, value):
             try encode(value)
-        case .ufixed(_, _, let value):
+        case let .ufixed(_, _, value):
             try encode(value)
-        case .bytes(let data):
+        case let .bytes(data):
             try encode(data, static: true)
-        case .function(let f, let args):
+        case let .function(f, args):
             try encode(signature: f.description)
             try encode(tuple: args)
-        case .array(let type, let array):
+        case let .array(type, array):
             precondition(!array.contains(where: { $0.type != type }), "Array can only contain values of type \(type)")
             try encode(tuple: array)
-        case .dynamicBytes(let data):
+        case let .dynamicBytes(data):
             try encode(data, static: false)
-        case .string(let string):
+        case let .string(string):
             try encode(string)
-        case .dynamicArray(let type, let array):
+        case let .dynamicArray(type, array):
             precondition(!array.contains(where: { $0.type != type }), "Array can only contain values of type \(type)")
             try encode(array.count)
             try encode(tuple: array)
-        case .tuple(let array):
+        case let .tuple(array):
             try encode(tuple: array)
         }
     }
@@ -134,7 +134,7 @@ public final class ABIEncoder {
         }
         let count = min(32, bytes.count)
         let padding = ((count + 31) / 32) * 32 - count
-        data.append(bytes[0..<count])
+        data.append(bytes[0 ..< count])
         data.append(Data(repeating: 0, count: padding))
     }
 
@@ -157,7 +157,7 @@ public final class ABIEncoder {
 
     /// Encodes a function signature
     public func encode(signature: String) throws {
-        data.append(try ABIEncoder.encode(signature: signature))
+        try data.append(ABIEncoder.encode(signature: signature))
     }
 
     /// Encodes a function signature
@@ -166,6 +166,6 @@ public final class ABIEncoder {
             throw ABIError.invalidUTF8String
         }
         let hash = Crypto.sha3(bytes)
-        return hash[0..<4]
+        return hash[0 ..< 4]
     }
 }

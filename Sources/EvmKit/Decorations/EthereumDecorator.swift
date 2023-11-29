@@ -6,21 +6,19 @@ class EthereumDecorator {
     init(address: Address) {
         self.address = address
     }
-
 }
 
 extension EthereumDecorator: ITransactionDecorator {
-
-    public func decoration(from: Address?, to: Address?, value: BigUInt?, contractMethod: ContractMethod?, internalTransactions: [InternalTransaction], eventInstances: [ContractEventInstance]) -> TransactionDecoration? {
-        guard let from = from, let value = value else {
+    public func decoration(from: Address?, to: Address?, value: BigUInt?, contractMethod: ContractMethod?, internalTransactions _: [InternalTransaction], eventInstances _: [ContractEventInstance]) -> TransactionDecoration? {
+        guard let from, let value else {
             return nil
         }
 
-        guard let to = to else {
+        guard let to else {
             return ContractCreationDecoration()
         }
 
-        if let contractMethod = contractMethod, contractMethod is EmptyMethod {
+        if let contractMethod, contractMethod is EmptyMethod {
             if from == address {
                 return OutgoingDecoration(to: to, value: value, sentToSelf: to == address)
             }
@@ -32,5 +30,4 @@ extension EthereumDecorator: ITransactionDecorator {
 
         return nil
     }
-
 }

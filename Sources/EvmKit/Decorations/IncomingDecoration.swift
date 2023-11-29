@@ -9,10 +9,9 @@ public class IncomingDecoration: TransactionDecoration {
         self.value = value
     }
 
-    public override func tags() -> [TransactionTag] {
+    override public func tags() -> [TransactionTag] {
         [
-            TransactionTag(type: .incoming, protocol: .native)
+            TransactionTag(type: .incoming, protocol: .native),
         ]
     }
-
 }

@@ -1,8 +1,7 @@
-import Foundation
 import BigInt
+import Foundation
 
 struct RLP {
-
     enum DecodeError: Error {
         case emptyData
         case invalidElementLength
@@ -48,14 +47,14 @@ struct RLP {
             throw DecodeError.invalidElementLength
         }
 
-        var output: RLPElement;
+        var output: RLPElement
 
         if type == .string {
-            output = RLPElement(type: .string, length: dataLen, lengthOfLengthBytes: offset, dataValue: input.subdata(in: offset..<(offset + dataLen)), listValue: nil)
+            output = RLPElement(type: .string, length: dataLen, lengthOfLengthBytes: offset, dataValue: input.subdata(in: offset ..< (offset + dataLen)), listValue: nil)
         } else {
             var value = [RLPElement]()
 
-            let listData = input.subdata(in: offset..<(offset + dataLen))
+            let listData = input.subdata(in: offset ..< (offset + dataLen))
             var listDataOffset = 0
 
             while listDataOffset < listData.count {
@@ -65,7 +64,7 @@ struct RLP {
                 listDataOffset += element.length + element.lengthOfLengthBytes
             }
 
-            output = RLPElement(type: .list, length: dataLen, lengthOfLengthBytes: offset, dataValue: input.subdata(in: 0..<(offset + dataLen)), listValue: value)
+            output = RLPElement(type: .list, length: dataLen, lengthOfLengthBytes: offset, dataValue: input.subdata(in: 0 ..< (offset + dataLen)), listValue: value)
         }
 
         return output
@@ -80,34 +79,33 @@ struct RLP {
 
         let prefix = Int(input[0])
 
-        if prefix <= 0x7f {
+        if prefix <= 0x7F {
             return (0, 1, .string)
 
-        } else if prefix <= 0xb7 && length > prefix - 0x80 {
+        } else if prefix <= 0xB7, length > prefix - 0x80 {
             return (1, prefix - 0x80, .string)
 
-        } else if prefix <= 0xbf && length > prefix - 0xb7,
-                  let len = to_integer(input.subdata(in: 1..<(1 + prefix - 0xb7))),
-                  length > prefix - 0xb7 + len {
-
-            let lenOfStrLen = prefix - 0xb7
-            if let strLen = to_integer(input.subdata(in: 1..<(1 + lenOfStrLen))) {
+        } else if prefix <= 0xBF, length > prefix - 0xB7,
+                  let len = to_integer(input.subdata(in: 1 ..< (1 + prefix - 0xB7))),
+                  length > prefix - 0xB7 + len
+        {
+            let lenOfStrLen = prefix - 0xB7
+            if let strLen = to_integer(input.subdata(in: 1 ..< (1 + lenOfStrLen))) {
                 return (1 + lenOfStrLen, strLen, .string)
             }
 
-        } else if prefix <= 0xf7 && length > prefix - 0xc0 {
-            let listLen = prefix - 0xc0
+        } else if prefix <= 0xF7, length > prefix - 0xC0 {
+            let listLen = prefix - 0xC0
             return (1, listLen, .list)
 
-        } else if prefix <= 0xff && length > prefix - 0xf7,
-                  let len = to_integer(input.subdata(in: 1..<(1 + prefix - 0xf7))),
-                  length > prefix - 0xf7 + len {
-
-            let lenOfListLen = prefix - 0xf7
-            if let listLen = to_integer(input.subdata(in: 1..<(1 + lenOfListLen))) {
+        } else if prefix <= 0xFF, length > prefix - 0xF7,
+                  let len = to_integer(input.subdata(in: 1 ..< (1 + prefix - 0xF7))),
+                  length > prefix - 0xF7 + len
+        {
+            let lenOfListLen = prefix - 0xF7
+            if let listLen = to_integer(input.subdata(in: 1 ..< (1 + lenOfListLen))) {
                 return (1 + lenOfListLen, listLen, .list)
             }
-
         }
 
         return nil
@@ -123,7 +121,7 @@ struct RLP {
         if length == 1 {
             return Int(b[0])
         } else {
-            if let len = to_integer(b.subdata(in: 0..<(length - 1))) {
+            if let len = to_integer(b.subdata(in: 0 ..< (length - 1))) {
                 return Int(b[length - 1]) + len * 256
             } else {
                 return nil
@@ -132,11 +130,11 @@ struct RLP {
     }
 
     private static func encode(data: Data) -> Data {
-        if data.count == 1 && data[0] <= 0x7f {
+        if data.count == 1, data[0] <= 0x7F {
             return data
         }
 
-        var encoded = encodeHeader(size: UInt64(data.count), smallTag: 0x80, largeTag: 0xb7)
+        var encoded = encodeHeader(size: UInt64(data.count), smallTag: 0x80, largeTag: 0xB7)
         encoded.append(data)
         return encoded
     }
@@ -162,7 +160,7 @@ struct RLP {
             data.append(encode(element))
         }
 
-        var encodedData = encodeHeader(size: UInt64(data.count), smallTag: 0xc0, largeTag: 0xf7)
+        var encodedData = encodeHeader(size: UInt64(data.count), smallTag: 0xC0, largeTag: 0xF7)
         encodedData.append(data)
         return encodedData
     }
@@ -186,29 +184,29 @@ struct RLP {
         case 0 ..< (1 << 16):
             return Data([
                 UInt8(i >> 8),
-                UInt8(truncatingIfNeeded: i)
-                ])
+                UInt8(truncatingIfNeeded: i),
+            ])
         case 0 ..< (1 << 24):
             return Data([
                 UInt8(i >> 16),
                 UInt8(truncatingIfNeeded: i >> 8),
-                UInt8(truncatingIfNeeded: i)
-                ])
+                UInt8(truncatingIfNeeded: i),
+            ])
         case 0 ..< (1 << 32):
             return Data([
                 UInt8(i >> 24),
                 UInt8(truncatingIfNeeded: i >> 16),
                 UInt8(truncatingIfNeeded: i >> 8),
-                UInt8(truncatingIfNeeded: i)
-                ])
+                UInt8(truncatingIfNeeded: i),
+            ])
         case 0 ..< (1 << 40):
             return Data([
                 UInt8(i >> 32),
                 UInt8(truncatingIfNeeded: i >> 24),
                 UInt8(truncatingIfNeeded: i >> 16),
                 UInt8(truncatingIfNeeded: i >> 8),
-                UInt8(truncatingIfNeeded: i)
-                ])
+                UInt8(truncatingIfNeeded: i),
+            ])
         case 0 ..< (1 << 48):
             return Data([
                 UInt8(i >> 40),
@@ -216,8 +214,8 @@ struct RLP {
                 UInt8(truncatingIfNeeded: i >> 24),
                 UInt8(truncatingIfNeeded: i >> 16),
                 UInt8(truncatingIfNeeded: i >> 8),
-                UInt8(truncatingIfNeeded: i)
-                ])
+                UInt8(truncatingIfNeeded: i),
+            ])
         case 0 ..< (1 << 56):
             return Data([
                 UInt8(i >> 48),
@@ -226,8 +224,8 @@ struct RLP {
                 UInt8(truncatingIfNeeded: i >> 24),
                 UInt8(truncatingIfNeeded: i >> 16),
                 UInt8(truncatingIfNeeded: i >> 8),
-                UInt8(truncatingIfNeeded: i)
-                ])
+                UInt8(truncatingIfNeeded: i),
+            ])
         default:
             return Data([
                 UInt8(i >> 56),
@@ -237,7 +235,7 @@ struct RLP {
                 UInt8(truncatingIfNeeded: i >> 24),
                 UInt8(truncatingIfNeeded: i >> 16),
                 UInt8(truncatingIfNeeded: i >> 8),
-                UInt8(truncatingIfNeeded: i)
+                UInt8(truncatingIfNeeded: i),
             ])
         }
     }

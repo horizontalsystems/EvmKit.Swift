@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import HdWalletKit
-import BigInt
 import HsCryptoKit
 import HsToolKit
 
@@ -32,16 +32,14 @@ public class Signer {
     public func sign(eip712TypedData: EIP712TypedData) throws -> Data {
         try ethSigner.sign(eip712TypedData: eip712TypedData)
     }
-
 }
 
-extension Signer {
-
-    public static func instance(seed: Data, chain: Chain) throws -> Signer {
-        instance(privateKey: try privateKey(seed: seed, chain: chain), chain: chain)
+public extension Signer {
+    static func instance(seed: Data, chain: Chain) throws -> Signer {
+        try instance(privateKey: privateKey(seed: seed, chain: chain), chain: chain)
     }
 
-    public static func instance(privateKey: Data, chain: Chain) -> Signer {
+    static func instance(privateKey: Data, chain: Chain) -> Signer {
         let address = address(privateKey: privateKey)
 
         let transactionSigner = TransactionSigner(chain: chain, privateKey: privateKey)
@@ -51,16 +49,16 @@ extension Signer {
         return Signer(transactionBuilder: transactionBuilder, transactionSigner: transactionSigner, ethSigner: ethSigner)
     }
 
-    public static func address(seed: Data, chain: Chain) throws -> Address {
-        address(privateKey: try privateKey(seed: seed, chain: chain))
+    static func address(seed: Data, chain: Chain) throws -> Address {
+        try address(privateKey: privateKey(seed: seed, chain: chain))
     }
 
-    public static func address(privateKey: Data) -> Address {
+    static func address(privateKey: Data) -> Address {
         let publicKey = Data(Crypto.publicKey(privateKey: privateKey, compressed: false).dropFirst())
         return Address(raw: Data(Crypto.sha3(publicKey).suffix(20)))
     }
 
-    public static func privateKey(string: String) throws -> Data {
+    static func privateKey(string: String) throws -> Data {
         guard let data = string.hs.hexData else {
             throw PrivateKeyValidationError.invalidDataString
         }
@@ -72,18 +70,15 @@ extension Signer {
         return data
     }
 
-    public static func privateKey(seed: Data, chain: Chain) throws -> Data {
+    static func privateKey(seed: Data, chain: Chain) throws -> Data {
         let hdWallet = HDWallet(seed: seed, coinType: chain.coinType, xPrivKey: HDExtendedKeyVersion.xprv.rawValue)
         return try hdWallet.privateKey(account: 0, index: 0, chain: .external).raw
     }
-
 }
 
-extension Signer {
-
-    public enum PrivateKeyValidationError: Error {
+public extension Signer {
+    enum PrivateKeyValidationError: Error {
         case invalidDataString
         case invalidDataLength
     }
-
 }
