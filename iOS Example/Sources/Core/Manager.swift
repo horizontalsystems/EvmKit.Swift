@@ -1,5 +1,5 @@
-import Foundation
 import EvmKit
+import Foundation
 import HdWalletKit
 
 class Manager {
@@ -22,12 +22,12 @@ class Manager {
 
     private func initKit(address: Address, configuration: Configuration, signer: Signer?) throws {
         let evmKit = try Kit.instance(
-                address: address,
-                chain: configuration.chain,
-                rpcSource: configuration.rpcSource,
-                transactionSource: configuration.transactionSource,
-                walletId: "walletId",
-                minLogLevel: configuration.minLogLevel
+            address: address,
+            chain: configuration.chain,
+            rpcSource: configuration.rpcSource,
+            transactionSource: configuration.transactionSource,
+            walletId: "walletId",
+            minLogLevel: configuration.minLogLevel
         )
 
         adapter = EthereumAdapter(evmKit: evmKit, signer: signer)
@@ -37,7 +37,6 @@ class Manager {
 
         evmKit.start()
     }
-
 
     private func initKit(words: [String]) throws {
         let configuration = Configuration.shared
@@ -49,9 +48,9 @@ class Manager {
         let signer = try Signer.instance(seed: seed, chain: configuration.chain)
 
         try initKit(
-                address: try Signer.address(seed: seed, chain: configuration.chain),
-                configuration: configuration,
-                signer: signer
+            address: Signer.address(seed: seed, chain: configuration.chain),
+            configuration: configuration,
+            signer: signer
         )
     }
 
@@ -92,11 +91,9 @@ class Manager {
         UserDefaults.standard.removeObject(forKey: keyAddress)
         UserDefaults.standard.synchronize()
     }
-
 }
 
 extension Manager {
-
     func login(words: [String]) throws {
         try Kit.clear(exceptFor: ["walletId"])
 
@@ -118,13 +115,10 @@ extension Manager {
         evmKit = nil
         adapter = nil
     }
-
 }
 
 extension Manager {
-
     enum LoginError: Error {
         case seedGenerationFailed
     }
-
 }

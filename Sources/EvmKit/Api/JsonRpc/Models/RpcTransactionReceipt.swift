@@ -1,7 +1,7 @@
-import Foundation
-import ObjectMapper
 import BigInt
+import Foundation
 import HsExtensions
+import ObjectMapper
 
 public class RpcTransactionReceipt: ImmutableMappable {
     public let transactionHash: Data
@@ -37,13 +37,10 @@ public class RpcTransactionReceipt: ImmutableMappable {
         root = try? map.value("root", using: HexDataTransform())
         status = try? map.value("status", using: HexIntTransform())
     }
-
 }
 
 extension RpcTransactionReceipt: CustomStringConvertible {
-
     public var description: String {
         "[transactionHash: \(transactionHash.hs.hexString); transactionIndex: \(transactionIndex); blockHash: \(blockHash); blockNumber: \(blockNumber); status: \(status.map { "\($0)" } ?? "nil")]"
     }
-
 }

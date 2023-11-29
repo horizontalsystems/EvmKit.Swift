@@ -1,6 +1,6 @@
-import Foundation
-import BigInt
 import Alamofire
+import BigInt
+import Foundation
 import HsToolKit
 
 class EtherscanTransactionProvider {
@@ -42,7 +42,7 @@ class EtherscanTransactionProvider {
                 return []
             }
 
-            if message == "NOTOK", let result = result, result.contains("Max rate limit reached") {
+            if message == "NOTOK", let result, result.contains("Max rate limit reached") {
                 throw RequestError.rateLimitExceeded
             }
 
@@ -55,18 +55,16 @@ class EtherscanTransactionProvider {
 
         return result
     }
-
 }
 
 extension EtherscanTransactionProvider: ITransactionProvider {
-
     func transactions(startBlock: Int) async throws -> [ProviderTransaction] {
         let params: [String: Any] = [
             "module": "account",
             "action": "txlist",
             "address": address.hex,
             "startblock": startBlock,
-            "sort": "desc"
+            "sort": "desc",
         ]
 
         let array = try await fetch(params: params)
@@ -79,7 +77,7 @@ extension EtherscanTransactionProvider: ITransactionProvider {
             "action": "txlistinternal",
             "address": address.hex,
             "startblock": startBlock,
-            "sort": "desc"
+            "sort": "desc",
         ]
 
         let array = try await fetch(params: params)
@@ -91,7 +89,7 @@ extension EtherscanTransactionProvider: ITransactionProvider {
             "module": "account",
             "action": "txlistinternal",
             "txhash": transactionHash.hs.hexString,
-            "sort": "desc"
+            "sort": "desc",
         ]
 
         let array = try await fetch(params: params)
@@ -104,7 +102,7 @@ extension EtherscanTransactionProvider: ITransactionProvider {
             "action": "tokentx",
             "address": address.hex,
             "startblock": startBlock,
-            "sort": "desc"
+            "sort": "desc",
         ]
 
         let array = try await fetch(params: params)
@@ -117,7 +115,7 @@ extension EtherscanTransactionProvider: ITransactionProvider {
             "action": "tokennfttx",
             "address": address.hex,
             "startblock": startBlock,
-            "sort": "desc"
+            "sort": "desc",
         ]
 
         let array = try await fetch(params: params)
@@ -130,17 +128,15 @@ extension EtherscanTransactionProvider: ITransactionProvider {
             "action": "token1155tx",
             "address": address.hex,
             "startblock": startBlock,
-            "sort": "desc"
+            "sort": "desc",
         ]
 
         let array = try await fetch(params: params)
         return array.compactMap { try? ProviderEip1155Transaction(JSON: $0) }
     }
-
 }
 
 extension EtherscanTransactionProvider {
-
     public enum RequestError: Error {
         case invalidResponse
         case invalidStatus
@@ -148,5 +144,4 @@ extension EtherscanTransactionProvider {
         case invalidResult
         case rateLimitExceeded
     }
-
 }

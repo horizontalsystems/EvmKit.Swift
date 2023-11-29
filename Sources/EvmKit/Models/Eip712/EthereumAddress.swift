@@ -5,19 +5,19 @@
 // file LICENSE at the root of the source code distribution tree.
 
 import Foundation
-//import TrezorCrypto
+// import TrezorCrypto
 
 /// Ethereum address.
 public struct EthereumAddress: AddressProtocol, Hashable {
     public static let size = 20
 
     /// Validates that the raw data is a valid address.
-    static public func isValid(data: Data) -> Bool {
-        return data.count == EthereumAddress.size
+    public static func isValid(data: Data) -> Bool {
+        data.count == EthereumAddress.size
     }
 
     /// Validates that the string is a valid address.
-    static public func isValid(string: String) -> Bool {
+    public static func isValid(string: String) -> Bool {
         guard let data = string.hs.hexData else {
             return false
         }
@@ -50,14 +50,14 @@ public struct EthereumAddress: AddressProtocol, Hashable {
     }
 
     public var description: String {
-        return eip55String
+        eip55String
     }
 
     public var hashValue: Int {
-        return data.hashValue
+        data.hashValue
     }
 
     public static func == (lhs: EthereumAddress, rhs: EthereumAddress) -> Bool {
-        return lhs.data == rhs.data
+        lhs.data == rhs.data
     }
 }

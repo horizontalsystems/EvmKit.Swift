@@ -54,14 +54,12 @@ enum SyncerState {
 }
 
 extension SyncerState: Equatable {
-
-    public static func ==(lhs: SyncerState, rhs: SyncerState) -> Bool {
+    public static func == (lhs: SyncerState, rhs: SyncerState) -> Bool {
         switch (lhs, rhs) {
         case (.preparing, .preparing): return true
         case (.ready, .ready): return true
-        case (.notReady(let lhsError), .notReady(let rhsError)): return "\(lhsError)" == "\(rhsError)"
+        case let (.notReady(lhsError), .notReady(rhsError)): return "\(lhsError)" == "\(rhsError)"
         default: return false
         }
     }
-
 }

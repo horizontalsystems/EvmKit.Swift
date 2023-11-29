@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import GRDB
-import BigInt
 
 public class Eip20Storage {
     private let dbPool: DatabasePool
@@ -50,49 +50,46 @@ public class Eip20Storage {
 
         return migrator
     }
-
 }
 
-extension Eip20Storage {
-
-    public func balance(contractAddress: Address) -> BigUInt? {
+public extension Eip20Storage {
+    func balance(contractAddress: Address) -> BigUInt? {
         try! dbPool.read { db in
             try Eip20Balance.filter(Eip20Balance.Columns.contractAddress == contractAddress.hex).fetchOne(db)?.value
         }
     }
 
-    public func save(balance: BigUInt, contractAddress: Address) {
+    func save(balance: BigUInt, contractAddress: Address) {
         _ = try? dbPool.write { db in
             try Eip20Balance(contractAddress: contractAddress.hex, value: balance).insert(db)
         }
     }
 
-    public func lastEvent() -> Event? {
+    func lastEvent() -> Event? {
         try! dbPool.read { db in
             try Event.order(Event.Columns.blockNumber.desc).fetchOne(db)
         }
     }
 
-    public func events() -> [Event] {
+    func events() -> [Event] {
         try! dbPool.read { db in
             try Event.fetchAll(db)
         }
     }
 
-    public func events(hashes: [Data]) -> [Event] {
+    func events(hashes: [Data]) -> [Event] {
         try! dbPool.read { db in
             try Event
-                    .filter(hashes.contains(Event.Columns.hash))
-                    .fetchAll(db)
+                .filter(hashes.contains(Event.Columns.hash))
+                .fetchAll(db)
         }
     }
 
-    public func save(events: [Event]) {
+    func save(events: [Event]) {
         try! dbPool.write { db in
             for event in events {
                 try event.save(db)
             }
         }
     }
-
 }

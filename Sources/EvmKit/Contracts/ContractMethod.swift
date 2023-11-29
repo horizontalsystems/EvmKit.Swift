@@ -1,7 +1,6 @@
 import Foundation
 
 open class ContractMethod {
-
     public init() {}
 
     open var methodSignature: String {
@@ -19,5 +18,4 @@ open class ContractMethod {
     public func encodedABI() -> Data {
         ContractMethodHelper.encodedABI(methodId: methodId, arguments: arguments)
     }
-
 }

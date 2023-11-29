@@ -1,7 +1,6 @@
 import UIKit
 
 class ReceiveController: UIViewController {
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -43,5 +42,4 @@ class ReceiveController: UIViewController {
         alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
     }
-
 }

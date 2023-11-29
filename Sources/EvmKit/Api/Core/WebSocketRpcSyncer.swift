@@ -1,14 +1,14 @@
-import Foundation
 import BigInt
+import Foundation
 import HsToolKit
 
 class WebSocketRpcSyncer {
     struct RpcHandler {
-        let onSuccess: (JsonRpcResponse) -> ()
-        let onError: (Error) -> ()
+        let onSuccess: (JsonRpcResponse) -> Void
+        let onError: (Error) -> Void
     }
 
-    typealias SubscriptionHandler = (RpcSubscriptionResponse) -> ()
+    typealias SubscriptionHandler = (RpcSubscriptionResponse) -> Void
 
     weak var delegate: IRpcSyncerDelegate?
 
@@ -39,7 +39,7 @@ class WebSocketRpcSyncer {
         return currentRpcId
     }
 
-    private func _send<T>(rpc: JsonRpc<T>, handler: RpcHandler) throws -> Int {
+    private func _send(rpc: JsonRpc<some Any>, handler: RpcHandler) throws -> Int {
         let rpcId = nextRpcId
 
         try rpcSocket.send(rpc: rpc, rpcId: rpcId)
@@ -56,21 +56,21 @@ class WebSocketRpcSyncer {
         }
     }
 
-    func send<T>(rpc: JsonRpc<T>, onSuccess: @escaping (T) -> (), onError: @escaping (Error) -> ()) -> Int? {
+    func send<T>(rpc: JsonRpc<T>, onSuccess: @escaping (T) -> Void, onError: @escaping (Error) -> Void) -> Int? {
         queue.sync { [weak self] in
             do {
                 return try self?._send(
-                        rpc: rpc,
-                        handler: RpcHandler(
-                                onSuccess: { response in
-                                    do {
-                                        onSuccess(try rpc.parse(response: response))
-                                    } catch {
-                                        onError(error)
-                                    }
-                                },
-                                onError: onError
-                        )
+                    rpc: rpc,
+                    handler: RpcHandler(
+                        onSuccess: { response in
+                            do {
+                                try onSuccess(rpc.parse(response: response))
+                            } catch {
+                                onError(error)
+                            }
+                        },
+                        onError: onError
+                    )
                 )
             } catch {
                 onError(error)
@@ -79,45 +79,43 @@ class WebSocketRpcSyncer {
         }
     }
 
-    func subscribe<T>(subscription: RpcSubscription<T>, onSuccess: @escaping () -> (), onError: @escaping (Error) -> (), successHandler: @escaping (T) -> (), errorHandler: @escaping (Error) -> ()) {
+    func subscribe<T>(subscription: RpcSubscription<T>, onSuccess: @escaping () -> Void, onError: @escaping (Error) -> Void, successHandler: @escaping (T) -> Void, errorHandler: @escaping (Error) -> Void) {
         _ = send(
-                rpc: SubscribeJsonRpc(params: subscription.params),
-                onSuccess: { [weak self] subscriptionId in
-                    self?.subscriptionHandlers[subscriptionId] = { response in
-                        do {
-                            successHandler(try subscription.parse(result: response.params.result))
-                        } catch {
-                            errorHandler(error)
-                        }
+            rpc: SubscribeJsonRpc(params: subscription.params),
+            onSuccess: { [weak self] subscriptionId in
+                self?.subscriptionHandlers[subscriptionId] = { response in
+                    do {
+                        try successHandler(subscription.parse(result: response.params.result))
+                    } catch {
+                        errorHandler(error)
                     }
-                    onSuccess()
-                },
-                onError: onError
+                }
+                onSuccess()
+            },
+            onError: onError
         )
     }
 
     private func subscribeToNewHeads() {
         subscribe(
-                subscription: NewHeadsRpcSubscription(),
-                onSuccess: {},
-                onError: { _ in
+            subscription: NewHeadsRpcSubscription(),
+            onSuccess: {},
+            onError: { _ in
 //                    self?.onFailSync(error: error)
-                },
-                successHandler: { [weak self] header in
-                    self?.delegate?.didUpdate(lastBlockHeight: header.number)
-                },
-                errorHandler: { [weak self] error in
-                    self?.logger?.error("NewHeads Handle Failed: \(error)")
-                }
+            },
+            successHandler: { [weak self] header in
+                self?.delegate?.didUpdate(lastBlockHeight: header.number)
+            },
+            errorHandler: { [weak self] error in
+                self?.logger?.error("NewHeads Handle Failed: \(error)")
+            }
         )
     }
-
 }
 
 extension WebSocketRpcSyncer: IRpcWebSocketDelegate {
-
     func didUpdate(socketState: WebSocketState) {
-        if case .notReady(let error) = state, let syncError = error as? Kit.SyncError, syncError == .notStarted {
+        if case let .notReady(error) = state, let syncError = error as? Kit.SyncError, syncError == .notStarted {
             // do not react to web socket state if syncer was stopped
             return
         }
@@ -128,7 +126,7 @@ extension WebSocketRpcSyncer: IRpcWebSocketDelegate {
         case .connected:
             state = .ready
             subscribeToNewHeads()
-        case .disconnected(let error):
+        case let .disconnected(error):
             queue.async { [weak self] in
                 self?.rpcHandlers.values.forEach { handler in
                     handler.onError(error)
@@ -153,11 +151,9 @@ extension WebSocketRpcSyncer: IRpcWebSocketDelegate {
             self?.subscriptionHandlers[subscriptionResponse.params.subscriptionId]?(subscriptionResponse)
         }
     }
-
 }
 
 extension WebSocketRpcSyncer: IRpcSyncer {
-
     var source: String {
         "WebSocket \(rpcSocket.source)"
     }
@@ -180,7 +176,7 @@ extension WebSocketRpcSyncer: IRpcSyncer {
         var rpcId: Int?
 
         let onCancel = { [weak self] in
-            if let rpcId = rpcId {
+            if let rpcId {
                 self?.cancel(rpcId: rpcId)
             }
         }
@@ -188,24 +184,22 @@ extension WebSocketRpcSyncer: IRpcSyncer {
         return try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { [weak self] continuation in
                 rpcId = self?.send(
-                        rpc: rpc,
-                        onSuccess: { value in
-                            continuation.resume(returning: value)
-                        },
-                        onError: { error in
-                            continuation.resume(throwing: error)
-                        }
+                    rpc: rpc,
+                    onSuccess: { value in
+                        continuation.resume(returning: value)
+                    },
+                    onError: { error in
+                        continuation.resume(throwing: error)
+                    }
                 )
             }
         } onCancel: {
             onCancel()
         }
     }
-
 }
 
 extension WebSocketRpcSyncer {
-
     static func instance(socket: IWebSocket, logger: Logger? = nil) -> WebSocketRpcSyncer {
         let rpcSocket = RpcWebSocket(socket: socket, logger: logger)
         socket.delegate = rpcSocket
@@ -215,5 +209,4 @@ extension WebSocketRpcSyncer {
 
         return syncer
     }
-
 }

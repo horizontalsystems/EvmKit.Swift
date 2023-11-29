@@ -17,26 +17,22 @@ public enum SyncState {
 }
 
 extension SyncState: Equatable {
-
-    public static func ==(lhs: SyncState, rhs: SyncState) -> Bool {
+    public static func == (lhs: SyncState, rhs: SyncState) -> Bool {
         switch (lhs, rhs) {
         case (.synced, .synced): return true
-        case (.syncing(let lhsProgress), .syncing(let rhsProgress)): return lhsProgress == rhsProgress
-        case (.notSynced(let lhsError), .notSynced(let rhsError)): return "\(lhsError)" == "\(rhsError)"
+        case let (.syncing(lhsProgress), .syncing(rhsProgress)): return lhsProgress == rhsProgress
+        case let (.notSynced(lhsError), .notSynced(rhsError)): return "\(lhsError)" == "\(rhsError)"
         default: return false
         }
     }
-
 }
 
 extension SyncState: CustomStringConvertible {
-
     public var description: String {
         switch self {
         case .synced: return "synced"
-        case .syncing(let progress): return "syncing \(progress ?? 0)"
-        case .notSynced(let error): return "not synced: \(error)"
+        case let .syncing(progress): return "syncing \(progress ?? 0)"
+        case let .notSynced(error): return "not synced: \(error)"
         }
     }
-
 }

@@ -27,5 +27,4 @@ open class ContractMethodFactories {
 
         return try? erc20MethodFactory?.createMethod(inputArguments: Data(input.suffix(from: 4)))
     }
-
 }

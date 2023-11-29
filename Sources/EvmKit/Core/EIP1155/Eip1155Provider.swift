@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 import HsToolKit
 
 public class Eip1155Provider {
@@ -8,12 +8,10 @@ public class Eip1155Provider {
     init(rpcApiProvider: IRpcApiProvider) {
         self.rpcApiProvider = rpcApiProvider
     }
-
 }
 
-extension Eip1155Provider {
-
-    public func balanceOf(contractAddress: Address, tokenId: BigUInt, address: Address) async throws -> BigUInt {
+public extension Eip1155Provider {
+    func balanceOf(contractAddress: Address, tokenId: BigUInt, address: Address) async throws -> BigUInt {
         let methodData = BalanceOfMethod(owner: address, tokenId: tokenId).encodedABI()
         let rpc = RpcBlockchain.callRpc(contractAddress: contractAddress, data: methodData, defaultBlockParameter: .latest)
 
@@ -25,15 +23,12 @@ extension Eip1155Provider {
 
         return value
     }
-
 }
 
 extension Eip1155Provider {
-
     class BalanceOfMethod: ContractMethod {
         private let owner: Address
         private let tokenId: BigUInt
-
 
         init(owner: Address, tokenId: BigUInt) {
             self.owner = owner
@@ -43,28 +38,25 @@ extension Eip1155Provider {
         override var methodSignature: String {
             "balanceOf(address,uint256)"
         }
+
         override var arguments: [Any] {
             [owner, tokenId]
         }
     }
-
 }
 
-extension Eip1155Provider {
-
-    public enum BalanceError: Error {
+public extension Eip1155Provider {
+    enum BalanceError: Error {
         case invalidHex
     }
 
-    public enum RpcSourceError: Error {
+    enum RpcSourceError: Error {
         case websocketNotSupported
     }
-
 }
 
-extension Eip1155Provider {
-
-    public static func instance(rpcSource: RpcSource, minLogLevel: Logger.Level = .error) throws -> Eip1155Provider {
+public extension Eip1155Provider {
+    static func instance(rpcSource: RpcSource, minLogLevel: Logger.Level = .error) throws -> Eip1155Provider {
         let logger = Logger(minLogLevel: minLogLevel)
         let networkManager = NetworkManager(logger: logger)
         let rpcApiProvider: IRpcApiProvider
@@ -78,5 +70,4 @@ extension Eip1155Provider {
 
         return Eip1155Provider(rpcApiProvider: rpcApiProvider)
     }
-
 }

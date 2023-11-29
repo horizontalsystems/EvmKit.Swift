@@ -25,12 +25,12 @@ public struct Function: Equatable, CustomStringConvertible {
         if values.count != parameters.count {
             throw ABIError.invalidNumberOfArguments
         }
-        return try zip(parameters, values).map({ try ABIValue($1, type: $0) })
+        return try zip(parameters, values).map { try ABIValue($1, type: $0) }
     }
 
     /// Function signature
     public var description: String {
-        let descriptions = parameters.map({ $0.description }).joined(separator: ",")
+        let descriptions = parameters.map(\.description).joined(separator: ",")
         return "\(name)(\(descriptions))"
     }
 }

@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import GRDB
-import BigInt
 
 class ApiStorage {
     private let dbPool: DatabasePool
@@ -41,11 +41,9 @@ class ApiStorage {
 
         return migrator
     }
-
 }
 
 extension ApiStorage: IApiStorage {
-
     var lastBlockHeight: Int? {
         try! dbPool.read { db in
             try BlockchainState.fetchOne(db)?.lastBlockHeight
@@ -71,5 +69,4 @@ extension ApiStorage: IApiStorage {
             try accountState.save(db)
         }
     }
-
 }

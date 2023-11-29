@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 
 protocol IBlockchain {
     var delegate: IBlockchainDelegate? { get set }

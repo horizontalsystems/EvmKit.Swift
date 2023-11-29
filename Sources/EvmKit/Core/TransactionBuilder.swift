@@ -46,7 +46,7 @@ extension TransactionBuilder {
         let signatureArray: [Any?] = [
             signature?.v,
             signature?.r,
-            signature?.s
+            signature?.s,
         ].compactMap { $0 }
 
         switch rawTransaction.gasPrice {
@@ -71,7 +71,7 @@ extension TransactionBuilder {
                 rawTransaction.to.raw,
                 rawTransaction.value,
                 rawTransaction.data,
-                []
+                [],
             ] + signatureArray)
 
             return Data([0x02]) + encodedTransaction

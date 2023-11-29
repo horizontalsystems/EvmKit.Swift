@@ -1,5 +1,5 @@
-import GRDB
 import BigInt
+import GRDB
 
 class Eip20Balance: Record {
     let contractAddress: String
@@ -32,5 +32,4 @@ class Eip20Balance: Record {
         container[Columns.contractAddress] = contractAddress
         container[Columns.value] = value
     }
-
 }

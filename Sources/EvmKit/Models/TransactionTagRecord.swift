@@ -26,9 +26,9 @@ class TransactionTagRecord: Record {
     required init(row: Row) throws {
         transactionHash = row[Columns.transactionHash]
         tag = TransactionTag(
-                type: row[Columns.type],
-                protocol: row[Columns.protocol],
-                contractAddress: row[Columns.contractAddress]
+            type: row[Columns.type],
+            protocol: row[Columns.protocol],
+            contractAddress: row[Columns.contractAddress]
         )
 
         try super.init(row: row)
@@ -40,5 +40,4 @@ class TransactionTagRecord: Record {
         container[Columns.protocol] = tag.protocol
         container[Columns.contractAddress] = tag.contractAddress
     }
-
 }

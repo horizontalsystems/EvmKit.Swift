@@ -1,10 +1,9 @@
-import HsCryptoKit
 import BigInt
 import Foundation
+import HsCryptoKit
 import HsExtensions
 
 public class ContractMethodHelper {
-
     public struct DynamicStructParameter {
         let arguments: [Any]
 
@@ -29,7 +28,6 @@ public class ContractMethodHelper {
         }
     }
 
-
     public static func encodedABI(methodId: Data, arguments: [Any]) -> Data {
         var data = methodId
         var arraysData = Data()
@@ -44,7 +42,7 @@ public class ContractMethodHelper {
                 data += prePad(data32: argument.raw)
             case let argument as [Address]:
                 data += prePad(data32: BigUInt(arguments.count * 32 + arraysData.count).serialize())
-                arraysData += encode(data32Array: argument.map { $0.raw })
+                arraysData += encode(data32Array: argument.map(\.raw))
             case let argument as Data:
                 data += prePad(data32: BigUInt(arguments.count * 32 + arraysData.count).serialize())
                 arraysData += prePad(data32: BigUInt(argument.count).serialize()) + argument
@@ -69,53 +67,53 @@ public class ContractMethodHelper {
         for type in argumentTypes {
             switch type {
             case is BigUInt.Type:
-                let data = Data(inputArguments[position..<position + 32])
+                let data = Data(inputArguments[position ..< position + 32])
                 parsedArguments.append(BigUInt(data))
                 position += 32
 
             case is [BigUInt].Type:
-                let arrayPosition = parseInt(data: inputArguments[position..<position + 32])
+                let arrayPosition = parseInt(data: inputArguments[position ..< position + 32])
                 let array: [BigUInt] = parseBigUInt(startPosition: arrayPosition, inputArguments: inputArguments)
                 parsedArguments.append(array)
                 position += 32
 
             case is Address.Type:
-                let data = Data(inputArguments[position..<position + 32])
+                let data = Data(inputArguments[position ..< position + 32])
                 parsedArguments.append(Address(raw: data))
                 position += 32
 
             case is [Address].Type:
-                let arrayPosition = parseInt(data: inputArguments[position..<position + 32])
+                let arrayPosition = parseInt(data: inputArguments[position ..< position + 32])
                 let array: [Address] = parseAddresses(startPosition: arrayPosition, inputArguments: inputArguments)
                 parsedArguments.append(array)
                 position += 32
 
             case is Data.Type:
-                let dataPosition = parseInt(data: inputArguments[position..<position + 32])
+                let dataPosition = parseInt(data: inputArguments[position ..< position + 32])
                 let data: Data = parseData(startPosition: dataPosition, inputArguments: inputArguments)
                 parsedArguments.append(data)
                 position += 32
 
             case is [Data].Type:
-                let dataPosition = parseInt(data: inputArguments[position..<position + 32])
+                let dataPosition = parseInt(data: inputArguments[position ..< position + 32])
                 let data: [Data] = parseDataArray(startPosition: dataPosition, inputArguments: inputArguments)
                 parsedArguments.append(data)
                 position += 32
 
             case is MulticallParameters.Type:
-                let dataPosition = parseInt(data: inputArguments[position..<position + 32])
+                let dataPosition = parseInt(data: inputArguments[position ..< position + 32])
                 let data: [Data] = parseContractDataArray(startPosition: dataPosition, inputArguments: inputArguments)
                 parsedArguments.append(data)
                 position += 32
 
             case let object as DynamicStructParameter:
-                let argumentsPosition = parseInt(data: inputArguments[position..<position + 32])
-                let data: [Any] = decodeABI(inputArguments: Data(inputArguments[argumentsPosition..<inputArguments.count]), argumentTypes: object.arguments)
+                let argumentsPosition = parseInt(data: inputArguments[position ..< position + 32])
+                let data: [Any] = decodeABI(inputArguments: Data(inputArguments[argumentsPosition ..< inputArguments.count]), argumentTypes: object.arguments)
                 parsedArguments.append(data)
                 position += 32
 
             case let object as StaticStructParameter:
-                let data: [Any] = decodeABI(inputArguments: Data(inputArguments[position..<inputArguments.count]), argumentTypes: object.arguments)
+                let data: [Any] = decodeABI(inputArguments: Data(inputArguments[position ..< inputArguments.count]), argumentTypes: object.arguments)
                 parsedArguments.append(data)
                 position += 32 * object.arguments.count
 
@@ -127,7 +125,7 @@ public class ContractMethodHelper {
     }
 
     public static func methodId(signature: String) -> Data {
-        Crypto.sha3(signature.data(using: .ascii)!)[0...3]
+        Crypto.sha3(signature.data(using: .ascii)!)[0 ... 3]
     }
 
     private class func parseInt(data: Data) -> Int {
@@ -136,11 +134,11 @@ public class ContractMethodHelper {
 
     private class func parseAddresses(startPosition: Int, inputArguments: Data) -> [Address] {
         let arrayStartPosition = startPosition + 32
-        let size = parseInt(data: inputArguments[startPosition..<arrayStartPosition])
+        let size = parseInt(data: inputArguments[startPosition ..< arrayStartPosition])
         var addresses = [Address]()
 
-        for i in 0..<size {
-            let addressData = Data(inputArguments[(arrayStartPosition + 32 * i)..<(arrayStartPosition + 32 * (i + 1))])
+        for i in 0 ..< size {
+            let addressData = Data(inputArguments[(arrayStartPosition + 32 * i) ..< (arrayStartPosition + 32 * (i + 1))])
             addresses.append(Address(raw: addressData))
         }
 
@@ -149,11 +147,11 @@ public class ContractMethodHelper {
 
     private class func parseBigUInt(startPosition: Int, inputArguments: Data) -> [BigUInt] {
         let arrayStartPosition = startPosition + 32
-        let size = parseInt(data: inputArguments[startPosition..<arrayStartPosition])
+        let size = parseInt(data: inputArguments[startPosition ..< arrayStartPosition])
         var bigUInts = [BigUInt]()
 
-        for i in 0..<size {
-            let bigUIntData = Data(inputArguments[(arrayStartPosition + 32 * i)..<(arrayStartPosition + 32 * (i + 1))])
+        for i in 0 ..< size {
+            let bigUIntData = Data(inputArguments[(arrayStartPosition + 32 * i) ..< (arrayStartPosition + 32 * (i + 1))])
             bigUInts.append(BigUInt(bigUIntData))
         }
 
@@ -162,21 +160,21 @@ public class ContractMethodHelper {
 
     private class func parseData(startPosition: Int, inputArguments: Data) -> Data {
         let dataStartPosition = startPosition + 32
-        let size = parseInt(data: inputArguments[startPosition..<dataStartPosition])
-        return Data(inputArguments[dataStartPosition..<(dataStartPosition + size)])
+        let size = parseInt(data: inputArguments[startPosition ..< dataStartPosition])
+        return Data(inputArguments[dataStartPosition ..< (dataStartPosition + size)])
     }
 
     private class func parseContractDataArray(startPosition: Int, inputArguments: Data) -> [Data] {
         let arrayStartPosition = startPosition + 32
-        let size = parseInt(data: inputArguments[startPosition..<arrayStartPosition])
+        let size = parseInt(data: inputArguments[startPosition ..< arrayStartPosition])
         var dataArray = [Data]()
 
-        for i in 0..<size {
-            let position = parseInt(data: inputArguments[(arrayStartPosition + 32 * i)..<(arrayStartPosition + 32 * (i + 1))])
+        for i in 0 ..< size {
+            let position = parseInt(data: inputArguments[(arrayStartPosition + 32 * i) ..< (arrayStartPosition + 32 * (i + 1))])
 
             let startMethodPosition = arrayStartPosition + position
-            let methodSize = parseInt(data: inputArguments[startMethodPosition..<startMethodPosition + 32])
-            let method = inputArguments[startMethodPosition + 32..<startMethodPosition + 32 + methodSize]
+            let methodSize = parseInt(data: inputArguments[startMethodPosition ..< startMethodPosition + 32])
+            let method = inputArguments[startMethodPosition + 32 ..< startMethodPosition + 32 + methodSize]
             dataArray.append(method)
         }
 
@@ -185,11 +183,11 @@ public class ContractMethodHelper {
 
     private class func parseDataArray(startPosition: Int, inputArguments: Data) -> [Data] {
         let arrayStartPosition = startPosition + 32
-        let size = parseInt(data: inputArguments[startPosition..<arrayStartPosition])
+        let size = parseInt(data: inputArguments[startPosition ..< arrayStartPosition])
         var dataArray = [Data]()
 
-        for i in 0..<size {
-            dataArray.append(Data(inputArguments[(arrayStartPosition + 32 * i)..<(arrayStartPosition + 32 * (i + 1))]))
+        for i in 0 ..< size {
+            dataArray.append(Data(inputArguments[(arrayStartPosition + 32 * i) ..< (arrayStartPosition + 32 * (i + 1))]))
         }
 
         return dataArray
@@ -210,13 +208,13 @@ public class ContractMethodHelper {
 
         let correctedArray = dataArray.map { postPad(data: $0) }
 
-        for index in 0..<correctedArray.count {
+        for index in 0 ..< correctedArray.count {
             let previousData = correctedArray.prefix(index)
             let previousDataLength = previousData.reduce(0) { $0 + $1.count + 32 }
             data += prePad(data32: BigUInt(32 * correctedArray.count + previousDataLength).serialize())
         }
 
-        for index in 0..<correctedArray.count {
+        for index in 0 ..< correctedArray.count {
             data += prePad(data32: BigUInt(dataArray[index].count).serialize())
             data += correctedArray[index]
         }
@@ -225,7 +223,7 @@ public class ContractMethodHelper {
     }
 
     private static func prePad(data32: Data) -> Data {
-        Data(repeating: 0, count: (max(0, 32 - data32.count))) + data32
+        Data(repeating: 0, count: max(0, 32 - data32.count)) + data32
     }
 
     private static func postPad(data: Data) -> Data {
@@ -233,7 +231,6 @@ public class ContractMethodHelper {
             return data
         }
 
-        return data + Data(repeating: 0, count: (max(0, 32 - data.count % 32)))
+        return data + Data(repeating: 0, count: max(0, 32 - data.count % 32))
     }
-
 }

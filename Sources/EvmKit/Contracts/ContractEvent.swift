@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import HsCryptoKit
-import BigInt
 
 public struct ContractEvent {
     private let name: String
@@ -12,16 +12,14 @@ public struct ContractEvent {
     }
 
     public var signature: Data {
-        let argumentTypes = arguments.map { $0.type }.joined(separator: ",")
+        let argumentTypes = arguments.map(\.type).joined(separator: ",")
         let structure = "\(name)(\(argumentTypes))"
         return Crypto.sha3(structure.data(using: .ascii)!)
     }
-
 }
 
-extension ContractEvent {
-
-    public enum Argument {
+public extension ContractEvent {
+    enum Argument {
         case uint256
         case uint256Array
         case address
@@ -34,5 +32,4 @@ extension ContractEvent {
             }
         }
     }
-
 }

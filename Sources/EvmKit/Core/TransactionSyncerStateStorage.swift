@@ -40,11 +40,9 @@ class TransactionSyncerStateStorage {
 
         return migrator
     }
-
 }
 
 extension TransactionSyncerStateStorage {
-
     func syncerState(syncerId: String) throws -> TransactionSyncerState? {
         try dbPool.read { db in
             try TransactionSyncerState.filter(TransactionSyncerState.Columns.syncerId == syncerId).fetchOne(db)
@@ -56,5 +54,4 @@ extension TransactionSyncerStateStorage {
             try syncerState.save(db)
         }
     }
-
 }

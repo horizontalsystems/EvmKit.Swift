@@ -1,6 +1,6 @@
+import BigInt
 import Foundation
 import GRDB
-import BigInt
 
 public class Event: Record {
     public let hash: Data
@@ -43,7 +43,7 @@ public class Event: Record {
         case tokenDecimal
     }
 
-    required public init(row: Row) throws {
+    public required init(row: Row) throws {
         hash = row[Columns.hash]
         blockNumber = row[Columns.blockNumber]
         contractAddress = Address(raw: row[Columns.contractAddress])
@@ -68,5 +68,4 @@ public class Event: Record {
         container[Columns.tokenSymbol] = tokenSymbol
         container[Columns.tokenDecimal] = tokenDecimal
     }
-
 }

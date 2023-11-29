@@ -1,8 +1,7 @@
-import GRDB
 import BigInt
+import GRDB
 
 extension BigUInt: DatabaseValueConvertible {
-
     public var databaseValue: DatabaseValue {
         description.databaseValue
     }
@@ -14,5 +13,4 @@ extension BigUInt: DatabaseValueConvertible {
 
         return nil
     }
-
 }

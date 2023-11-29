@@ -51,32 +51,32 @@ public indirect enum ABIType: Equatable, CustomStringConvertible {
     /// This is the string as required for function selectors
     public var description: String {
         switch self {
-        case .uint(let bits):
+        case let .uint(bits):
             return "uint\(bits)"
-        case .int(let bits):
+        case let .int(bits):
             return "int\(bits)"
         case .address:
             return "address"
         case .bool:
             return "bool"
-        case .fixed(let m, let n):
+        case let .fixed(m, n):
             return "fixed\(m)x\(n)"
-        case .ufixed(let m, let n):
+        case let .ufixed(m, n):
             return "ufixed\(m)x\(n)"
-        case .bytes(let size):
+        case let .bytes(size):
             return "bytes\(size)"
-        case .function(let f):
+        case let .function(f):
             return f.description
-        case .array(let type, let size):
+        case let .array(type, size):
             return "\(type)[\(size)]"
         case .dynamicBytes:
             return "bytes"
         case .string:
             return "string"
-        case .dynamicArray(let type):
+        case let .dynamicArray(type):
             return "\(type)[]"
-        case .tuple(let types):
-            return types.reduce("", { $0 + $1.description })
+        case let .tuple(types):
+            return types.reduce("") { $0 + $1.description }
         }
     }
 
@@ -87,10 +87,10 @@ public indirect enum ABIType: Equatable, CustomStringConvertible {
             return false
         case .dynamicBytes, .string, .dynamicArray:
             return true
-        case .function(let f):
-            return f.parameters.contains(where: { $0.isDynamic })
-        case .tuple(let array):
-            return array.contains(where: { $0.isDynamic })
+        case let .function(f):
+            return f.parameters.contains(where: \.isDynamic)
+        case let .tuple(array):
+            return array.contains(where: \.isDynamic)
         }
     }
 }

@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 import ObjectMapper
 
 public struct ProviderTokenTransaction: ImmutableMappable {
@@ -40,5 +40,4 @@ public struct ProviderTokenTransaction: ImmutableMappable {
         gasUsed = try map.value("gasUsed", using: StringIntTransform())
         cumulativeGasUsed = try map.value("cumulativeGasUsed", using: StringIntTransform())
     }
-
 }

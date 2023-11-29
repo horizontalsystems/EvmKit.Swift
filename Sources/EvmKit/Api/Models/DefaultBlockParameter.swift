@@ -6,7 +6,7 @@ public enum DefaultBlockParameter {
 
     var raw: String {
         switch self {
-        case .blockNumber(let value):
+        case let .blockNumber(value):
             return "0x" + String(value, radix: 16)
         case .earliest:
             return "earliest"
@@ -16,13 +16,10 @@ public enum DefaultBlockParameter {
             return "pending"
         }
     }
-
 }
 
 extension DefaultBlockParameter: CustomStringConvertible {
-
     public var description: String {
         raw
     }
-
 }

@@ -27,22 +27,21 @@ public struct FullRpcTransaction {
 
     func transaction(timestamp: Int) -> Transaction {
         Transaction(
-                hash: rpcTransaction.hash,
-                timestamp: timestamp,
-                isFailed: failed,
-                blockNumber: rpcBlock?.number,
-                transactionIndex: rpcTransactionReceipt?.transactionIndex,
-                from: rpcTransaction.from,
-                to: rpcTransaction.to,
-                value: rpcTransaction.value,
-                input: rpcTransaction.input,
-                nonce: rpcTransaction.nonce,
-                gasPrice: rpcTransaction.gasPrice,
-                maxFeePerGas: rpcTransaction.maxFeePerGas,
-                maxPriorityFeePerGas: rpcTransaction.maxPriorityFeePerGas,
-                gasLimit: rpcTransaction.gasLimit,
-                gasUsed: rpcTransactionReceipt?.gasUsed
+            hash: rpcTransaction.hash,
+            timestamp: timestamp,
+            isFailed: failed,
+            blockNumber: rpcBlock?.number,
+            transactionIndex: rpcTransactionReceipt?.transactionIndex,
+            from: rpcTransaction.from,
+            to: rpcTransaction.to,
+            value: rpcTransaction.value,
+            input: rpcTransaction.input,
+            nonce: rpcTransaction.nonce,
+            gasPrice: rpcTransaction.gasPrice,
+            maxFeePerGas: rpcTransaction.maxFeePerGas,
+            maxPriorityFeePerGas: rpcTransaction.maxPriorityFeePerGas,
+            gasLimit: rpcTransaction.gasLimit,
+            gasUsed: rpcTransactionReceipt?.gasUsed
         )
     }
-
 }
