@@ -1,7 +1,7 @@
 import Foundation
 import HsCryptoKit
 
-class NameHash {
+enum NameHash {
     static func nameHash(name: String) -> String {
         var hash = Data(count: 32)
         let labels = name.components(separatedBy: ".")

@@ -1,7 +1,7 @@
 import BigInt
 import Foundation
 
-struct RLP {
+enum RLP {
     enum DecodeError: Error {
         case emptyData
         case invalidElementLength
