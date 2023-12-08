@@ -2,7 +2,7 @@ import HsCryptoKit
 
 // NOTE: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
 
-struct EIP55 {
+enum EIP55 {
     static func format(address: String) -> String {
         guard !address.isEmpty else {
             return address
