@@ -9,7 +9,7 @@ class TransactionSyncManager {
 
     private var _syncers = [ITransactionSyncer]()
 
-    private let queue = DispatchQueue(label: "io.horizontal-systems.ethereum-kit.transaction-sync-manager", qos: .utility)
+    private let queue = DispatchQueue(label: "io.horizontal-systems.ethereum-kit.transaction-sync-manager", qos: .userInitiated)
 
     private let stateSubject = PassthroughSubject<SyncState, Never>()
     private var _state: SyncState = .notSynced(error: Kit.SyncError.notStarted) {

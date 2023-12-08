@@ -19,7 +19,7 @@ class WebSocketRpcSyncer {
     private var rpcHandlers = [Int: RpcHandler]()
     private var subscriptionHandlers = [String: SubscriptionHandler]()
 
-    private let queue = DispatchQueue(label: "io.horizontal-systems.ethereum-kit.web-socket-rpc-syncer", qos: .utility)
+    private let queue = DispatchQueue(label: "io.horizontal-systems.ethereum-kit.web-socket-rpc-syncer", qos: .userInitiated)
 
     private(set) var state: SyncerState = .notReady(error: Kit.SyncError.notStarted) {
         didSet {
