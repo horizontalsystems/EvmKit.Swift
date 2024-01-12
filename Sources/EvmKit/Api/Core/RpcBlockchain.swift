@@ -182,4 +182,14 @@ extension RpcBlockchain {
         syncer.delegate = blockchain
         return blockchain
     }
+
+    static func estimateGas(networkManager: NetworkManager, rpcSource: RpcSource, from: Address, to: Address?, amount: BigUInt?, gasLimit: Int, gasPrice: GasPrice, data: Data?) async throws -> Int {
+        guard case let .http(urls, auth) = rpcSource else {
+            throw Kit.RpcSourceError.websocketNotSupported
+        }
+
+        let provider = NodeApiProvider(networkManager: networkManager, urls: urls, auth: auth)
+        let rpcRequest = EstimateGasJsonRpc(from: from, to: to, amount: amount, gasLimit: gasLimit, gasPrice: gasPrice, data: data)
+        return try await provider.fetch(rpc: rpcRequest)
+    }
 }
