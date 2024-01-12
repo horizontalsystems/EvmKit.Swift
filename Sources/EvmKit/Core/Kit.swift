@@ -350,6 +350,14 @@ extension Kit {
 
         return url
     }
+
+    static func fetchEstimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) async throws -> Int {
+        try await RpcBlockchain.estimateGas(networkManager: networkManager, rpcSource: rpcSource, from: from, to: to, amount: amount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: data)
+    }
+
+    static func fetchEstimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, transactionData: TransactionData, gasPrice: GasPrice) async throws -> Int {
+        try await fetchEstimateGas(networkManager: networkManager, rpcSource: rpcSource, chain: chain, from: from, to: transactionData.to, amount: transactionData.value, gasPrice: gasPrice, data: transactionData.input)
+    }
 }
 
 public extension Kit {
