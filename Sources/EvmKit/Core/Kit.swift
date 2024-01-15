@@ -350,14 +350,6 @@ extension Kit {
 
         return url
     }
-
-    static func fetchEstimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) async throws -> Int {
-        try await RpcBlockchain.estimateGas(networkManager: networkManager, rpcSource: rpcSource, from: from, to: to, amount: amount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: data)
-    }
-
-    static func fetchEstimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, transactionData: TransactionData, gasPrice: GasPrice) async throws -> Int {
-        try await fetchEstimateGas(networkManager: networkManager, rpcSource: rpcSource, chain: chain, from: from, to: transactionData.to, amount: transactionData.value, gasPrice: gasPrice, data: transactionData.input)
-    }
 }
 
 public extension Kit {
@@ -383,6 +375,14 @@ public extension Kit {
 
         let rpc = RpcBlockchain.callRpc(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter)
         return try await rpcApiProvider.fetch(rpc: rpc)
+    }
+
+    static func estimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) async throws -> Int {
+        try await RpcBlockchain.estimateGas(networkManager: networkManager, rpcSource: rpcSource, from: from, to: to, amount: amount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: data)
+    }
+
+    static func estimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, transactionData: TransactionData, gasPrice: GasPrice) async throws -> Int {
+        try await estimateGas(networkManager: networkManager, rpcSource: rpcSource, chain: chain, from: from, to: transactionData.to, amount: transactionData.value, gasPrice: gasPrice, data: transactionData.input)
     }
 }
 
