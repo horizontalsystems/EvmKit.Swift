@@ -1,7 +1,11 @@
 import Combine
 import Foundation
+import HsToolKit
 
 public class EIP1559GasPriceProvider {
+    private static let feeHistoryBlocksCount = 10
+    private static let feeHistoryRewardPercentile = [50]
+
     public enum FeeHistoryError: Error {
         case notAvailable
     }
@@ -12,30 +16,35 @@ public class EIP1559GasPriceProvider {
         self.evmKit = evmKit
     }
 
-    public func feeHistoryPublisher(blocksCount: Int, defaultBlockParameter: DefaultBlockParameter = .latest, rewardPercentile: [Int]) -> AnyPublisher<FeeHistory, Error> {
-        evmKit.lastBlockHeightPublisher
-            .setFailureType(to: Error.self)
-            .flatMap { [weak self] _ in
-                Future<FeeHistory, Error> { promise in
-                    Task { [weak self] in
-                        do {
-                            guard let strongSelf = self else {
-                                throw FeeHistoryError.notAvailable
-                            }
+    public func gasPrice(defaultBlockParameter: DefaultBlockParameter = .latest) async throws -> GasPrice {
+        let feeHistoryRequest = FeeHistoryJsonRpc(blocksCount: Self.feeHistoryBlocksCount, defaultBlockParameter: defaultBlockParameter, rewardPercentile: Self.feeHistoryRewardPercentile)
+        let feeHistory = try await evmKit.fetch(rpcRequest: feeHistoryRequest)
+        let tipsConsidered = feeHistory.reward.compactMap(\.first)
+        let baseFeesConsidered = feeHistory.baseFeePerGas.suffix(2)
 
-                            let result = try await strongSelf.feeHistory(blocksCount: blocksCount, defaultBlockParameter: defaultBlockParameter, rewardPercentile: rewardPercentile)
-                            promise(.success(result))
-                        } catch {
-                            promise(.failure(error))
-                        }
-                    }
-                }
-            }
-            .eraseToAnyPublisher()
+        guard !baseFeesConsidered.isEmpty, !tipsConsidered.isEmpty else {
+            throw EIP1559GasPriceProvider.FeeHistoryError.notAvailable
+        }
+
+        let maxPriorityFeePerGas = tipsConsidered.reduce(0, +) / tipsConsidered.count
+        let maxFeePerGas = (baseFeesConsidered.max() ?? 0) + maxPriorityFeePerGas
+        return .eip1559(maxFeePerGas: maxFeePerGas, maxPriorityFeePerGas: maxPriorityFeePerGas)
     }
+}
 
-    public func feeHistory(blocksCount: Int, defaultBlockParameter: DefaultBlockParameter = .latest, rewardPercentile: [Int]) async throws -> FeeHistory {
-        let feeHistoryRequest = FeeHistoryJsonRpc(blocksCount: blocksCount, defaultBlockParameter: defaultBlockParameter, rewardPercentile: rewardPercentile)
-        return try await evmKit.fetch(rpcRequest: feeHistoryRequest)
+public extension EIP1559GasPriceProvider {
+    static func gasPrice(networkManager: NetworkManager, rpcSource: RpcSource, defaultBlockParameter: DefaultBlockParameter = .latest) async throws -> GasPrice {
+        let feeHistoryRequest = FeeHistoryJsonRpc(blocksCount: Self.feeHistoryBlocksCount, defaultBlockParameter: defaultBlockParameter, rewardPercentile: Self.feeHistoryRewardPercentile)
+        let feeHistory = try await RpcBlockchain.call(networkManager: networkManager, rpcSource: rpcSource, rpcRequest: feeHistoryRequest)
+        let tipsConsidered = feeHistory.reward.compactMap(\.first)
+        let baseFeesConsidered = feeHistory.baseFeePerGas.suffix(2)
+
+        guard !baseFeesConsidered.isEmpty, !tipsConsidered.isEmpty else {
+            throw EIP1559GasPriceProvider.FeeHistoryError.notAvailable
+        }
+
+        let maxPriorityFeePerGas = tipsConsidered.reduce(0, +) / tipsConsidered.count
+        let maxFeePerGas = (baseFeesConsidered.max() ?? 0) + maxPriorityFeePerGas
+        return .eip1559(maxFeePerGas: maxFeePerGas, maxPriorityFeePerGas: maxPriorityFeePerGas)
     }
 }

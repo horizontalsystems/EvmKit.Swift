@@ -192,4 +192,13 @@ extension RpcBlockchain {
         let rpcRequest = EstimateGasJsonRpc(from: from, to: to, amount: amount, gasLimit: gasLimit, gasPrice: gasPrice, data: data)
         return try await provider.fetch(rpc: rpcRequest)
     }
+
+    static func call<T>(networkManager: NetworkManager, rpcSource: RpcSource, rpcRequest: JsonRpc<T>) async throws -> T {
+        guard case let .http(urls, auth) = rpcSource else {
+            throw Kit.RpcSourceError.websocketNotSupported
+        }
+
+        let provider = NodeApiProvider(networkManager: networkManager, urls: urls, auth: auth)
+        return try await provider.fetch(rpc: rpcRequest)
+    }
 }
