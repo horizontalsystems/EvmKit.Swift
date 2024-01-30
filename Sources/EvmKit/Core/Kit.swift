@@ -384,6 +384,11 @@ public extension Kit {
     static func estimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, transactionData: TransactionData, gasPrice: GasPrice) async throws -> Int {
         try await estimateGas(networkManager: networkManager, rpcSource: rpcSource, chain: chain, from: from, to: transactionData.to, amount: transactionData.value, gasPrice: gasPrice, data: transactionData.input)
     }
+
+    static func nonceSingle(networkManager: NetworkManager, rpcSource: RpcSource, userAddress: Address, defaultBlockParameter: DefaultBlockParameter = .latest) async throws -> Int {
+        let request = GetTransactionCountJsonRpc(address: userAddress, defaultBlockParameter: defaultBlockParameter)
+        return try await RpcBlockchain.call(networkManager: networkManager, rpcSource: rpcSource, rpcRequest: request)
+    }
 }
 
 public extension Kit {
