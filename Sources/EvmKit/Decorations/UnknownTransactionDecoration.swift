@@ -46,9 +46,9 @@ open class UnknownTransactionDecoration: TransactionDecoration {
         var tags = [TransactionTag]()
 
         if incomingValue > outgoingValue {
-            tags.append(TransactionTag(type: .incoming, protocol: .native))
+            tags.append(TransactionTag(type: .incoming, protocol: .native, addresses: fromAddress.map { [$0.hex] } ?? []))
         } else if outgoingValue > incomingValue {
-            tags.append(TransactionTag(type: .outgoing, protocol: .native))
+            tags.append(TransactionTag(type: .outgoing, protocol: .native, addresses: toAddress.map { [$0.hex] } ?? []))
         }
 
         return tags

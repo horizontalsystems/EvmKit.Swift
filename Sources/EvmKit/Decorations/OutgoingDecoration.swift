@@ -13,7 +13,7 @@ public class OutgoingDecoration: TransactionDecoration {
 
     override public func tags() -> [TransactionTag] {
         var tags = [
-            TransactionTag(type: .outgoing, protocol: .native),
+            TransactionTag(type: .outgoing, protocol: .native, addresses: [to.hex]),
         ]
 
         if sentToSelf {
