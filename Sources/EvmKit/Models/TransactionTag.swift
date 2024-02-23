@@ -4,11 +4,13 @@ public class TransactionTag {
     public let type: TagType
     public let `protocol`: TagProtocol?
     public let contractAddress: Address?
+    public let addresses: [String]
 
-    public init(type: TagType, protocol: TagProtocol? = nil, contractAddress: Address? = nil) {
+    public init(type: TagType, protocol: TagProtocol? = nil, contractAddress: Address? = nil, addresses: [String] = []) {
         self.type = type
         self.protocol = `protocol`
         self.contractAddress = contractAddress
+        self.addresses = addresses
     }
 
     public func conforms(tagQuery: TransactionTagQuery) -> Bool {
@@ -24,6 +26,10 @@ public class TransactionTag {
             return false
         }
 
+        if let address = tagQuery.address?.lowercased(), !addresses.contains(address) {
+            return false
+        }
+
         return true
     }
 }
@@ -33,10 +39,11 @@ extension TransactionTag: Hashable {
         hasher.combine(type)
         hasher.combine(`protocol`)
         hasher.combine(contractAddress)
+        hasher.combine(addresses)
     }
 
     public static func == (lhs: TransactionTag, rhs: TransactionTag) -> Bool {
-        lhs.type == rhs.type && lhs.protocol == rhs.protocol && lhs.contractAddress == rhs.contractAddress
+        lhs.type == rhs.type && lhs.protocol == rhs.protocol && lhs.contractAddress == rhs.contractAddress && lhs.addresses == rhs.addresses
     }
 }
 
