@@ -98,6 +98,23 @@ class TransactionStorage {
             }
         }
 
+        migrator.registerMigration("recreate TransactionTagRecord") { db in
+            if try db.tableExists("transactionTag") {
+                try db.drop(table: "transactionTag")
+            }
+
+            try Transaction.deleteAll(db)
+            try InternalTransaction.deleteAll(db)
+
+            try db.create(table: TransactionTagRecord.databaseTableName) { t in
+                t.column(TransactionTagRecord.Columns.transactionHash.name, .blob).notNull()
+                t.column(TransactionTagRecord.Columns.type.name, .text).notNull()
+                t.column(TransactionTagRecord.Columns.protocol.name, .text)
+                t.column(TransactionTagRecord.Columns.contractAddress.name, .blob)
+                t.column(TransactionTagRecord.Columns.addresses.name, .text).notNull()
+            }
+        }
+
         return migrator
     }
 }

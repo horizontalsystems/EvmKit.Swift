@@ -38,6 +38,10 @@ class TransactionSyncerStateStorage {
             try TransactionSyncerState.deleteAll(db)
         }
 
+        migrator.registerMigration("remove all states after update transaction's tags") { db in
+            try TransactionSyncerState.deleteAll(db)
+        }
+
         return migrator
     }
 }
