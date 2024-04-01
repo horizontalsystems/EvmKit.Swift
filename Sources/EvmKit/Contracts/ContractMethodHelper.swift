@@ -37,7 +37,8 @@ public class ContractMethodHelper {
             case let argument as BigUInt:
                 data += prePad(data32: argument.serialize())
             case let argument as String:
-                data += prePad(data32: argument.hs.hexData ?? Data())
+                data += prePad(data32: BigUInt(arguments.count * 32 + arraysData.count).serialize())
+                arraysData += encode(string: argument) ?? Data()
             case let argument as Address:
                 data += prePad(data32: argument.raw)
             case let argument as [Address]:
@@ -199,6 +200,19 @@ public class ContractMethodHelper {
         for item in data32Array {
             data += prePad(data32: item)
         }
+
+        return data
+    }
+
+    private static func encode(string: String) -> Data? {
+        guard let stringData = string.data(using: .utf8) else {
+            return nil
+        }
+
+        let count = stringData.count
+        var data = prePad(data32: BigUInt(count).serialize())
+        let pack32Count = (count / 32) + (count % 32 == 0 ? 0 : 1)
+        data += stringData + Data(repeating: 0, count: max(0, pack32Count * 32 - count))
 
         return data
     }
