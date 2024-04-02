@@ -87,7 +87,7 @@ public extension EIP712TypedData {
         depSet.remove(primaryType)
 
         let sorted = [primaryType] + Array(depSet).sorted()
-        let encoded = sorted.map { type in
+        let encoded: String = sorted.map { type in
             let param = types[type]!.map { "\($0.type) \($0.name)" }.joined(separator: ",")
             return "\(type)(\(param))"
         }.joined()
