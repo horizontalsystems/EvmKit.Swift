@@ -3,6 +3,10 @@ import Foundation
 import HsCryptoKit
 import HsExtensions
 
+public struct Data32 {
+    let data: Data
+}
+
 public class ContractMethodHelper {
     public struct DynamicStructParameter {
         let arguments: [Any]
@@ -41,6 +45,8 @@ public class ContractMethodHelper {
                 arraysData += encode(string: argument) ?? Data()
             case let argument as Address:
                 data += prePad(data32: argument.raw)
+            case let argument as Data32:
+                data += prePad(data32: argument.data)
             case let argument as [Address]:
                 data += prePad(data32: BigUInt(arguments.count * 32 + arraysData.count).serialize())
                 arraysData += encode(data32Array: argument.map(\.raw))
