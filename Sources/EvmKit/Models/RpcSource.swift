@@ -103,4 +103,8 @@ public extension RpcSource {
     static func fantomRpcHttp() -> RpcSource {
         .http(urls: [URL(string: "https://rpc.fantom.network")!], auth: nil)
     }
+
+    static func baseRpcHttp() -> RpcSource {
+        .http(urls: [URL(string: "https://mainnet.base.org")!], auth: nil)
+    }
 }

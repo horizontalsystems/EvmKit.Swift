@@ -106,4 +106,11 @@ public extension TransactionSource {
             type: .etherscan(apiBaseUrl: "https://api.ftmscan.com", txBaseUrl: "https://ftmscan.com", apiKey: apiKey)
         )
     }
+
+    static func basescan(apiKey: String) -> TransactionSource {
+        TransactionSource(
+            name: "basescan.org",
+            type: .etherscan(apiBaseUrl: "https://api.basescan.org", txBaseUrl: "https://basescan.org", apiKey: apiKey)
+        )
+    }
 }
