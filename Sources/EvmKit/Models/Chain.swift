@@ -106,6 +106,16 @@ public extension Chain {
         )
     }
 
+    static var base: Chain {
+        Chain(
+            id: 8453,
+            coinType: 60, // actually Optimism has coin type 614
+            syncInterval: 15,
+            gasLimit: 10_000_000,
+            isEIP1559Supported: true
+        )
+    }
+
     static var ethereumRopsten: Chain {
         Chain(
             id: 3,
