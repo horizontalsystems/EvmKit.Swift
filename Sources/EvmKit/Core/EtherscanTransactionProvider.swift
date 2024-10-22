@@ -6,21 +6,22 @@ import HsToolKit
 class EtherscanTransactionProvider {
     private let networkManager: NetworkManager
     private let baseUrl: String
-    private let apiKey: String
     private let address: Address
+    private let apiKeyProvider: ApiKeyProvider
 
-    init(baseUrl: String, apiKey: String, address: Address, logger: Logger) {
+    init(baseUrl: String, apiKeys: [String], address: Address, logger: Logger) {
         networkManager = NetworkManager(interRequestInterval: 1, logger: logger)
         self.baseUrl = baseUrl
-        self.apiKey = apiKey
         self.address = address
+
+        apiKeyProvider = .init(apiKeys: apiKeys)
     }
 
     private func fetch(params: [String: Any]) async throws -> [[String: Any]] {
         let urlString = "\(baseUrl)/api"
 
         var parameters = params
-        parameters["apikey"] = apiKey
+        parameters["apikey"] = await apiKeyProvider.getApiKey()
 
         let json = try await networkManager.fetchJson(url: urlString, method: .get, parameters: parameters, responseCacherBehavior: .doNotCache)
 
@@ -143,5 +144,19 @@ extension EtherscanTransactionProvider {
         case responseError(message: String?, result: String?)
         case invalidResult
         case rateLimitExceeded
+    }
+
+    actor ApiKeyProvider {
+        private let apiKeys: [String]
+        private var index = 0
+        
+        init(apiKeys: [String]) {
+            self.apiKeys = apiKeys
+        }
+
+        func getApiKey() -> String {
+            index = (index + 1) % apiKeys.count
+            return apiKeys[index]
+        }
     }
 }
