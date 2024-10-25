@@ -3,6 +3,7 @@ import Combine
 import Foundation
 import HsExtensions
 import HsToolKit
+import UIKit
 
 class ApiRpcSyncer {
     weak var delegate: IRpcSyncerDelegate?
@@ -34,10 +35,25 @@ class ApiRpcSyncer {
                 self?.handleUpdate(reachable: reachable)
             }
             .store(in: &cancellables)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(onEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(onEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
     }
 
     deinit {
         stop()
+    }
+
+    @objc func onEnterBackground() {
+        timer?.invalidate()
+    }
+
+    @objc func onEnterForeground() {
+        guard isStarted else {
+            return
+        }
+
+        startTimer()
     }
 
     @objc func onFireTimer() {
@@ -48,10 +64,14 @@ class ApiRpcSyncer {
     }
 
     private func startTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: syncInterval, repeats: true) { [weak self] _ in
-            self?.onFireTimer()
+        timer?.invalidate()
+
+        DispatchQueue.main.async { [weak self, syncInterval] in
+            self?.timer = Timer.scheduledTimer(withTimeInterval: syncInterval, repeats: true) { [weak self] _ in
+                self?.onFireTimer()
+            }
+            self?.timer?.tolerance = 0.5
         }
-        timer?.tolerance = 0.5
     }
 
     private func handleUpdate(reachable: Bool) {
@@ -61,10 +81,7 @@ class ApiRpcSyncer {
 
         if reachable {
             state = .ready
-
-            DispatchQueue.main.async { [weak self] in
-                self?.startTimer()
-            }
+            startTimer()
         } else {
             state = .notReady(error: Kit.SyncError.noNetworkConnection)
             timer?.invalidate()
