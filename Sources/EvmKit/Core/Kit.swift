@@ -197,11 +197,11 @@ public extension Kit {
         return try await blockchain.estimateGas(to: to, amount: resolvedAmount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: nil)
     }
 
-    func fetchEstimateGas(to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) async throws -> Int {
+    func fetchEstimateGas(to: Address?, amount: BigUInt?, gasPrice: GasPrice?, data: Data?) async throws -> Int {
         try await blockchain.estimateGas(to: to, amount: amount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: data)
     }
 
-    func fetchEstimateGas(transactionData: TransactionData, gasPrice: GasPrice) async throws -> Int {
+    func fetchEstimateGas(transactionData: TransactionData, gasPrice: GasPrice? = nil) async throws -> Int {
         try await fetchEstimateGas(to: transactionData.to, amount: transactionData.value, gasPrice: gasPrice, data: transactionData.input)
     }
 
