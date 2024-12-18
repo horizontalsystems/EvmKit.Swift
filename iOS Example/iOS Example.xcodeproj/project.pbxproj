@@ -3,11 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACD51AFB9204008FA782 /* AppDelegate.swift */; };
+		D05AD9AF2D12C0FF00FF448C /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = D05AD9AE2D12C0FF00FF448C /* GRDB */; };
 		D3604EBB28F3F8B40066C366 /* UIExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = D3604EBA28F3F8B40066C366 /* UIExtensions */; };
 		D36AAAC923A237940065B32B /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = D36AAAAF23A237940065B32B /* Configuration.swift */; };
 		D36AAACA23A237940065B32B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D36AAAB023A237940065B32B /* Assets.xcassets */; };
@@ -53,6 +54,7 @@
 				D36DFC2928EBDF5B00D2FC62 /* SnapKit in Frameworks */,
 				D36DFC2628EB016100D2FC62 /* EvmKit in Frameworks */,
 				D3604EBB28F3F8B40066C366 /* UIExtensions in Frameworks */,
+				D05AD9AF2D12C0FF00FF448C /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +167,7 @@
 				D36DFC2528EB016100D2FC62 /* EvmKit */,
 				D36DFC2828EBDF5B00D2FC62 /* SnapKit */,
 				D3604EBA28F3F8B40066C366 /* UIExtensions */,
+				D05AD9AE2D12C0FF00FF448C /* GRDB */,
 			);
 			productName = EthereumKit;
 			productReference = 607FACD01AFB9204008FA782 /* EvmKit Demo.app */;
@@ -199,6 +202,7 @@
 			packageReferences = (
 				D36DFC2728EBDF5B00D2FC62 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				D3604EB928F3F7FA0066C366 /* XCRemoteSwiftPackageReference "UIExtensions" */,
+				D05AD9AD2D12C0FF00FF448C /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			productRefGroup = 607FACD11AFB9204008FA782 /* Products */;
 			projectDirPath = "";
@@ -416,6 +420,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D05AD9AD2D12C0FF00FF448C /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 6.29.3;
+			};
+		};
 		D3604EB928F3F7FA0066C366 /* XCRemoteSwiftPackageReference "UIExtensions" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/horizontalsystems/UIExtensions.Swift";
@@ -435,6 +447,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D05AD9AE2D12C0FF00FF448C /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D05AD9AD2D12C0FF00FF448C /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
 		D3604EBA28F3F8B40066C366 /* UIExtensions */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D3604EB928F3F7FA0066C366 /* XCRemoteSwiftPackageReference "UIExtensions" */;
