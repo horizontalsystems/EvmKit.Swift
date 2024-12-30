@@ -85,7 +85,7 @@ class TransactionSyncManager {
         Task { [weak self, _syncers] in
             do {
                 let resultArray = try await withThrowingTaskGroup(of: ([Transaction], Bool).self) { group in
-                    _syncers.forEach { syncer in
+                    for syncer in _syncers {
                         group.addTask {
                             try await syncer.transactions()
                         }

@@ -232,6 +232,45 @@ extension TransactionStorage {
         }
     }
 
+    func transactionsAfter(transactionHash: Data?) -> [Transaction] {
+        try! dbPool.read { db in
+            var transactions = Transaction
+                .filter(Transaction.Columns.blockNumber != nil && Transaction.Columns.isFailed == false)
+
+            if let fromHash = transactionHash,
+               let fromTransaction = try Transaction.filter(Transaction.Columns.hash == fromHash).fetchOne(db)
+            {
+                var arguments = [DatabaseValueConvertible]()
+                let fromCondition = """
+                (
+                 \(Transaction.Columns.timestamp.name) > ? OR
+                     (
+                         \(Transaction.Columns.timestamp.name) = ? AND
+                         \(Transaction.Columns.transactionIndex.name) > ?
+                     ) OR
+                     (
+                         \(Transaction.Columns.timestamp.name) = ? AND
+                         \(Transaction.Columns.transactionIndex.name) IS ? AND
+                         \(Transaction.Columns.hash.name) > ?
+                     )
+                )
+                """
+
+                let transactionIndex = fromTransaction.transactionIndex ?? 0
+                arguments.append(fromTransaction.timestamp)
+                arguments.append(fromTransaction.timestamp)
+                arguments.append(transactionIndex)
+                arguments.append(fromTransaction.timestamp)
+                arguments.append(transactionIndex)
+                arguments.append(fromTransaction.hash)
+
+                transactions = transactions.filter(sql: fromCondition, arguments: StatementArguments(arguments))
+            }
+
+            return try transactions.fetchAll(db)
+        }
+    }
+
     func save(transactions: [Transaction]) {
         try! dbPool.write { db in
             for transaction in transactions {
