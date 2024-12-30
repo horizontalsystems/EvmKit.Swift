@@ -34,8 +34,8 @@ open class UnknownTransactionDecoration: TransactionDecoration {
         if toAddress == userAddress {
             incomingValue = value
         }
-        incomingInternalTransactions.forEach {
-            incomingValue += $0.value
+        for incomingInternalTransaction in incomingInternalTransactions {
+            incomingValue += incomingInternalTransaction.value
         }
 
         // if has value or has internalTxs must add Evm tag
@@ -47,7 +47,7 @@ open class UnknownTransactionDecoration: TransactionDecoration {
         var addresses = [fromAddress, toAddress]
             .compactMap { $0 }
             .filter { $0 != userAddress }
-            .map { $0.hex }
+            .map(\.hex)
 
         if incomingValue > outgoingValue {
             tags.append(TransactionTag(type: .incoming, protocol: .native, addresses: addresses))

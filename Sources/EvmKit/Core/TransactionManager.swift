@@ -124,6 +124,11 @@ extension TransactionManager {
         return decorationManager.decorate(transactions: transactions)
     }
 
+    func fullTransactionsAfter(transactionHash: Data?) -> [FullTransaction] {
+        let transactions = storage.transactionsAfter(transactionHash: transactionHash)
+        return decorationManager.decorate(transactions: transactions)
+    }
+
     func pendingFullTransactions(tagQueries: [TransactionTagQuery]) -> [FullTransaction] {
         decorationManager.decorate(transactions: storage.pendingTransactions(tagQueries: tagQueries))
     }

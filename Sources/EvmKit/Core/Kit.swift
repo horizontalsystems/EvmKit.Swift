@@ -127,6 +127,10 @@ public extension Kit {
         transactionManager.fullTransactions(tagQueries: tagQueries, fromHash: fromHash, limit: limit)
     }
 
+    func allTransactionsAfter(transactionHash: Data? = nil) -> [FullTransaction] {
+        transactionManager.fullTransactionsAfter(transactionHash: transactionHash)
+    }
+
     func pendingTransactions(tagQueries: [TransactionTagQuery]) -> [FullTransaction] {
         transactionManager.pendingFullTransactions(tagQueries: tagQueries)
     }
