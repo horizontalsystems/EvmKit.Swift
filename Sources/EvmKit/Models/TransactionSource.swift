@@ -113,4 +113,11 @@ public extension TransactionSource {
             type: .etherscan(apiBaseUrl: "https://api.basescan.org", txBaseUrl: "https://basescan.org", apiKeys: apiKeys)
         )
     }
+
+    static func eraZkSync(apiKeys: [String]) -> TransactionSource {
+        TransactionSource(
+            name: "era.zksync.network",
+            type: .etherscan(apiBaseUrl: "https://api-era.zksync.network", txBaseUrl: "https://era.zksync.network", apiKeys: apiKeys)
+        )
+    }
 }
