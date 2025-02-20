@@ -116,6 +116,16 @@ public extension Chain {
         )
     }
 
+    static var zkSync: Chain {
+        Chain(
+            id: 324,
+            coinType: 60,
+            syncInterval: 15,
+            gasLimit: 10_000_000,
+            isEIP1559Supported: true
+        )
+    }
+
     static var ethereumRopsten: Chain {
         Chain(
             id: 3,
