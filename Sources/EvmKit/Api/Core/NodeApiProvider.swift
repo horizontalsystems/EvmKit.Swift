@@ -23,9 +23,9 @@ class NodeApiProvider {
         self.headers = headers
     }
 
-    private func rpcResult(urlIndex: Int = 0, parameters: [String: Any]) async throws -> Any {
+    private func rpcResult<T>(rpc: JsonRpc<T>, urlIndex: Int = 0, attempt: Int = 0, parameters: [String: Any]) async throws -> T {
         do {
-            return try await networkManager.fetchJson(
+            let json = try await networkManager.fetchJson(
                 url: urls[urlIndex],
                 method: .post,
                 parameters: parameters,
@@ -34,11 +34,18 @@ class NodeApiProvider {
                 interceptor: self,
                 responseCacherBehavior: .doNotCache
             )
-        } catch {
-            let nextIndex = urlIndex + 1
+            
+            
+            guard let rpcResponse = JsonRpcResponse.response(jsonObject: json) else {
+                throw RequestError.invalidResponse(jsonObject: json)
+            }
 
-            if nextIndex < urls.count {
-                return try await rpcResult(urlIndex: nextIndex, parameters: parameters)
+            return try rpc.parse(response: rpcResponse)
+        } catch {
+            let nextIndex = (urlIndex + 1) % urls.count
+
+            if attempt < urls.count * 2 {
+                return try await rpcResult(rpc:rpc, urlIndex: nextIndex, attempt: attempt + 1, parameters: parameters)
             } else {
                 throw error
             }
@@ -70,13 +77,7 @@ extension NodeApiProvider: IRpcApiProvider {
     func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
         currentRpcId += 1
 
-        let json = try await rpcResult(parameters: rpc.parameters(id: currentRpcId))
-
-        guard let rpcResponse = JsonRpcResponse.response(jsonObject: json) else {
-            throw RequestError.invalidResponse(jsonObject: json)
-        }
-
-        return try rpc.parse(response: rpcResponse)
+        return try await rpcResult(rpc: rpc, parameters: rpc.parameters(id: currentRpcId))
     }
 }
 
