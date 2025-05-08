@@ -23,7 +23,7 @@ public extension TransactionSource {
     private static func etherscan(apiSubdomain: String, txSubdomain: String?, apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "etherscan.io",
-            type: .etherscan(apiBaseUrl: "https://\(apiSubdomain).etherscan.io", txBaseUrl: "https://\(txSubdomain.map { "\($0)." } ?? "")etherscan.io", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://\(apiSubdomain).etherscan.io/v2", txBaseUrl: "https://\(txSubdomain.map { "\($0)." } ?? "")etherscan.io", apiKeys: apiKeys)
         )
     }
 
