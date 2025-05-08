@@ -304,7 +304,7 @@ extension Kit {
         }
 
         let transactionBuilder = TransactionBuilder(chain: chain, address: address)
-        let transactionProvider: ITransactionProvider = transactionProvider(transactionSource: transactionSource, address: address, logger: logger)
+        let transactionProvider: ITransactionProvider = transactionProvider(transactionSource: transactionSource, address: address, chainId: chain.id, logger: logger)
 
         let storage: IApiStorage = try ApiStorage(databaseDirectoryUrl: dataDirectoryUrl(), databaseFileName: "api-\(uniqueId)")
         let blockchain = RpcBlockchain.instance(address: address, storage: storage, syncer: syncer, transactionBuilder: transactionBuilder, logger: logger)
@@ -336,10 +336,10 @@ extension Kit {
         return kit
     }
 
-    private static func transactionProvider(transactionSource: TransactionSource, address: Address, logger: Logger) -> ITransactionProvider {
+    private static func transactionProvider(transactionSource: TransactionSource, address: Address, chainId: Int, logger: Logger) -> ITransactionProvider {
         switch transactionSource.type {
         case let .etherscan(apiBaseUrl, _, apiKeys):
-            return EtherscanTransactionProvider(baseUrl: apiBaseUrl, apiKeys: apiKeys, address: address, logger: logger)
+            return EtherscanTransactionProvider(baseUrl: apiBaseUrl, apiKeys: apiKeys, address: address, chainId: chainId, logger: logger)
         }
     }
 

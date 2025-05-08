@@ -7,12 +7,14 @@ class EtherscanTransactionProvider {
     private let networkManager: NetworkManager
     private let baseUrl: String
     private let address: Address
+    private let chainId: Int
     private let syncedState: SyncedState
 
-    init(baseUrl: String, apiKeys: [String], address: Address, logger: Logger) {
+    init(baseUrl: String, apiKeys: [String], address: Address, chainId: Int, logger: Logger) {
         networkManager = NetworkManager(logger: logger)
         self.baseUrl = baseUrl
         self.address = address
+        self.chainId = chainId
 
         syncedState = .init(apiKeys: apiKeys)
     }
@@ -26,6 +28,7 @@ class EtherscanTransactionProvider {
 
         var parameters = params
         parameters["apikey"] = await syncedState.getApiKey()
+        parameters["chainid"] = chainId
 
         let json = try await networkManager.fetchJson(url: urlString, method: .get, parameters: parameters, responseCacherBehavior: .doNotCache)
 
