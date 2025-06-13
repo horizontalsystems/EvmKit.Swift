@@ -109,9 +109,9 @@ public extension Chain {
     static var base: Chain {
         Chain(
             id: 8453,
-            coinType: 60, // actually Optimism has coin type 614
+            coinType: 60,
             syncInterval: 15,
-            gasLimit: 10_000_000,
+            gasLimit: 20_000_000,
             isEIP1559Supported: true
         )
     }
