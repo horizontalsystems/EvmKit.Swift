@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 
 public struct TransactionData {
     public var to: Address
@@ -14,9 +14,7 @@ public struct TransactionData {
 }
 
 extension TransactionData: Equatable {
-
-    public static func ==(lhs: TransactionData, rhs: TransactionData) -> Bool {
+    public static func == (lhs: TransactionData, rhs: TransactionData) -> Bool {
         lhs.to == rhs.to && lhs.value == rhs.value && lhs.input == rhs.input
     }
-
 }

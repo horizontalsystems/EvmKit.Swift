@@ -1,6 +1,6 @@
-import Foundation
-import BigInt
 import Alamofire
+import BigInt
+import Foundation
 import HsToolKit
 
 class NodeApiProvider {
@@ -16,40 +16,45 @@ class NodeApiProvider {
 
         var headers = HTTPHeaders()
 
-        if let auth = auth {
+        if let auth {
             headers.add(.authorization(username: "", password: auth))
         }
 
         self.headers = headers
     }
 
-    private func rpcResult(urlIndex: Int = 0, parameters: [String: Any]) async throws -> Any {
+    private func rpcResult<T>(rpc: JsonRpc<T>, urlIndex: Int = 0, attempt: Int = 0, parameters: [String: Any]) async throws -> T {
         do {
-            return try await networkManager.fetchJson(
-                    url: urls[urlIndex],
-                    method: .post,
-                    parameters: parameters,
-                    encoding: JSONEncoding.default,
-                    headers: headers,
-                    interceptor: self,
-                    responseCacherBehavior: .doNotCache
+            let json = try await networkManager.fetchJson(
+                url: urls[urlIndex],
+                method: .post,
+                parameters: parameters,
+                encoding: JSONEncoding.default,
+                headers: headers,
+                interceptor: self,
+                responseCacherBehavior: .doNotCache
             )
-        } catch {
-            let nextIndex = urlIndex + 1
+            
+            
+            guard let rpcResponse = JsonRpcResponse.response(jsonObject: json) else {
+                throw RequestError.invalidResponse(jsonObject: json)
+            }
 
-            if nextIndex < urls.count {
-                return try await rpcResult(urlIndex: nextIndex, parameters: parameters)
+            return try rpc.parse(response: rpcResponse)
+        } catch {
+            let nextIndex = (urlIndex + 1) % urls.count
+
+            if attempt < urls.count * 2 {
+                return try await rpcResult(rpc:rpc, urlIndex: nextIndex, attempt: attempt + 1, parameters: parameters)
             } else {
                 throw error
             }
         }
     }
-
 }
 
 extension NodeApiProvider: RequestInterceptor {
-
-    func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> ()) {
+    func retry(_: Request, for _: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
         if case let JsonRpcResponse.ResponseError.rpcError(rpcError) = error, rpcError.code == -32005 {
             var backoffSeconds = 1.0
 
@@ -62,33 +67,22 @@ extension NodeApiProvider: RequestInterceptor {
             completion(.doNotRetry)
         }
     }
-
 }
 
 extension NodeApiProvider: IRpcApiProvider {
-
     var source: String {
-        urls.compactMap { $0.host }.joined(separator: ", ")
+        urls.compactMap(\.host).joined(separator: ", ")
     }
 
     func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
         currentRpcId += 1
 
-        let json = try await rpcResult(parameters: rpc.parameters(id: currentRpcId))
-
-        guard let rpcResponse = JsonRpcResponse.response(jsonObject: json) else {
-            throw RequestError.invalidResponse(jsonObject: json)
-        }
-
-        return try rpc.parse(response: rpcResponse)
+        return try await rpcResult(rpc: rpc, parameters: rpc.parameters(id: currentRpcId))
     }
-
 }
 
 extension NodeApiProvider {
-
     public enum RequestError: Error {
         case invalidResponse(jsonObject: Any)
     }
-
 }

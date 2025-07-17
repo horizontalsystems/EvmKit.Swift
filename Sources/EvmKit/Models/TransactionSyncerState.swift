@@ -11,7 +11,7 @@ class TransactionSyncerState: Record {
         super.init()
     }
 
-    public override class var databaseTableName: String {
+    override public class var databaseTableName: String {
         "transactionSyncerStates"
     }
 
@@ -27,9 +27,8 @@ class TransactionSyncerState: Record {
         try super.init(row: row)
     }
 
-    public override func encode(to container: inout PersistenceContainer) throws {
+    override public func encode(to container: inout PersistenceContainer) throws {
         container[Columns.syncerId] = syncerId
         container[Columns.lastBlockNumber] = lastBlockNumber
     }
-
 }

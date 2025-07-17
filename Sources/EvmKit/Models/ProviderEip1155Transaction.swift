@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 import ObjectMapper
 
 public struct ProviderEip1155Transaction: ImmutableMappable {
@@ -40,5 +40,4 @@ public struct ProviderEip1155Transaction: ImmutableMappable {
         tokenName = try map.value("tokenName")
         tokenSymbol = try map.value("tokenSymbol")
     }
-
 }

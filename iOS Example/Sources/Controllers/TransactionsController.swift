@@ -1,6 +1,6 @@
 import Combine
-import UIKit
 import UIExtensions
+import UIKit
 
 class TransactionsController: UITableViewController {
     private let limit = 20
@@ -21,18 +21,18 @@ class TransactionsController: UITableViewController {
         tableView.separatorInset = .zero
 
         adapter.lastBlockHeightPublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in
-                    self?.tableView.reloadData()
-                }
-                .store(in: &cancellables)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.tableView.reloadData()
+            }
+            .store(in: &cancellables)
 
         adapter.transactionsPublisher
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in
-                    self?.onTransactionsUpdated()
-                }
-                .store(in: &cancellables)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.onTransactionsUpdated()
+            }
+            .store(in: &cancellables)
 
         loadNext()
     }
@@ -64,11 +64,11 @@ class TransactionsController: UITableViewController {
         }
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         transactions.count
     }
 
-    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    override func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         250
     }
 
@@ -76,7 +76,7 @@ class TransactionsController: UITableViewController {
         tableView.dequeueReusableCell(withIdentifier: String(describing: TransactionCell.self), for: indexPath)
     }
 
-    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    override func tableView(_: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         if let cell = cell as? TransactionCell {
             cell.bind(transaction: transactions[indexPath.row], coin: adapter.coin, lastBlockHeight: adapter.lastBlockHeight)
         }
@@ -97,5 +97,4 @@ class TransactionsController: UITableViewController {
 
         tableView.deselectRow(at: indexPath, animated: true)
     }
-
 }

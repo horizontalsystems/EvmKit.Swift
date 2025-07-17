@@ -1,7 +1,7 @@
-import Foundation
-import ObjectMapper
 import BigInt
+import Foundation
 import HsExtensions
+import ObjectMapper
 
 public class RpcTransaction: ImmutableMappable {
     public let hash: Data
@@ -33,13 +33,10 @@ public class RpcTransaction: ImmutableMappable {
         blockNumber = try? map.value("blockNumber", using: HexIntTransform())
         transactionIndex = try? map.value("transactionIndex", using: HexIntTransform())
     }
-
 }
 
 extension RpcTransaction: CustomStringConvertible {
-
     public var description: String {
         "[hash: \(hash.hs.hexString); nonce: \(nonce); blockHash: \(blockHash?.hs.hexString ?? "nil"); blockNumber: \(blockNumber.map { "\($0)" } ?? "nil"); transactionIndex: \(transactionIndex.map { "\($0)" } ?? "nil"); from: \(from.hex); to: \(to?.hex ?? "nil"); value: \(value); gasPrice: \(gasPrice); gas: \(gasLimit); input: \(input.hs.hex)]"
     }
-
 }

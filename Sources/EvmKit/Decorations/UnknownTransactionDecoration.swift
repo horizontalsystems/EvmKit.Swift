@@ -18,7 +18,7 @@ open class UnknownTransactionDecoration: TransactionDecoration {
         self.eventInstances = eventInstances
     }
 
-    public override func tags() -> [TransactionTag] {
+    override public func tags() -> [TransactionTag] {
         Array(Set(tagsFromInternalTransactions + tagsFromEventInstances))
     }
 
@@ -34,21 +34,25 @@ open class UnknownTransactionDecoration: TransactionDecoration {
         if toAddress == userAddress {
             incomingValue = value
         }
-        incomingInternalTransactions.forEach {
-            incomingValue += $0.value
+        for incomingInternalTransaction in incomingInternalTransactions {
+            incomingValue += incomingInternalTransaction.value
         }
 
         // if has value or has internalTxs must add Evm tag
-        if outgoingValue == 0 && incomingValue == 0 {
+        if outgoingValue == 0, incomingValue == 0 {
             return []
         }
 
         var tags = [TransactionTag]()
+        var addresses = [fromAddress, toAddress]
+            .compactMap { $0 }
+            .filter { $0 != userAddress }
+            .map(\.hex)
 
         if incomingValue > outgoingValue {
-            tags.append(TransactionTag(type: .incoming, protocol: .native))
+            tags.append(TransactionTag(type: .incoming, protocol: .native, addresses: addresses))
         } else if outgoingValue > incomingValue {
-            tags.append(TransactionTag(type: .outgoing, protocol: .native))
+            tags.append(TransactionTag(type: .outgoing, protocol: .native, addresses: addresses))
         }
 
         return tags
@@ -63,5 +67,4 @@ open class UnknownTransactionDecoration: TransactionDecoration {
 
         return tags
     }
-
 }

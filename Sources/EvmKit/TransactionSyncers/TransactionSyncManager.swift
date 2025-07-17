@@ -1,6 +1,6 @@
-import Foundation
-import Combine
 import BigInt
+import Combine
+import Foundation
 import HsExtensions
 
 class TransactionSyncManager {
@@ -9,7 +9,7 @@ class TransactionSyncManager {
 
     private var _syncers = [ITransactionSyncer]()
 
-    private let queue = DispatchQueue(label: "io.horizontal-systems.ethereum-kit.transaction-sync-manager", qos: .utility)
+    private let queue = DispatchQueue(label: "io.horizontal-systems.ethereum-kit.transaction-sync-manager", qos: .userInitiated)
 
     private let stateSubject = PassthroughSubject<SyncState, Never>()
     private var _state: SyncState = .notSynced(error: Kit.SyncError.notStarted) {
@@ -25,8 +25,8 @@ class TransactionSyncManager {
     }
 
     private func _handle(resultArray: [([Transaction], Bool)]) {
-        let transactions = Array(resultArray.map { $0.0 }.joined())
-        let initial = resultArray.map { $0.1 }.allSatisfy { $0 }
+        let transactions = Array(resultArray.map(\.0).joined())
+        let initial = resultArray.map(\.1).allSatisfy { $0 }
 
         var dictionary = [Data: Transaction]()
 
@@ -43,22 +43,22 @@ class TransactionSyncManager {
 
     static func merge(lhsTransaction lhs: Transaction, rhsTransaction rhs: Transaction) -> Transaction {
         Transaction(
-                hash: lhs.hash,
-                timestamp: lhs.timestamp,
-                isFailed: lhs.isFailed || rhs.isFailed,
-                blockNumber: lhs.blockNumber ?? rhs.blockNumber,
-                transactionIndex: lhs.transactionIndex ?? rhs.transactionIndex,
-                from: lhs.from ?? rhs.from,
-                to: lhs.to ?? rhs.to,
-                value: lhs.value ?? rhs.value,
-                input: lhs.input ?? rhs.input,
-                nonce: lhs.nonce ?? rhs.nonce,
-                gasPrice: lhs.gasPrice ?? rhs.gasPrice,
-                maxFeePerGas: lhs.maxFeePerGas ?? rhs.maxFeePerGas,
-                maxPriorityFeePerGas: lhs.maxPriorityFeePerGas ?? rhs.maxPriorityFeePerGas,
-                gasLimit: lhs.gasLimit ?? rhs.gasLimit,
-                gasUsed: lhs.gasUsed ?? rhs.gasUsed,
-                replacedWith: lhs.replacedWith ?? rhs.replacedWith
+            hash: lhs.hash,
+            timestamp: lhs.timestamp,
+            isFailed: lhs.isFailed || rhs.isFailed,
+            blockNumber: lhs.blockNumber ?? rhs.blockNumber,
+            transactionIndex: lhs.transactionIndex ?? rhs.transactionIndex,
+            from: lhs.from ?? rhs.from,
+            to: lhs.to ?? rhs.to,
+            value: lhs.value ?? rhs.value,
+            input: lhs.input ?? rhs.input,
+            nonce: lhs.nonce ?? rhs.nonce,
+            gasPrice: lhs.gasPrice ?? rhs.gasPrice,
+            maxFeePerGas: lhs.maxFeePerGas ?? rhs.maxFeePerGas,
+            maxPriorityFeePerGas: lhs.maxPriorityFeePerGas ?? rhs.maxPriorityFeePerGas,
+            gasLimit: lhs.gasLimit ?? rhs.gasLimit,
+            gasUsed: lhs.gasUsed ?? rhs.gasUsed,
+            replacedWith: lhs.replacedWith ?? rhs.replacedWith
         )
     }
 
@@ -85,7 +85,7 @@ class TransactionSyncManager {
         Task { [weak self, _syncers] in
             do {
                 let resultArray = try await withThrowingTaskGroup(of: ([Transaction], Bool).self) { group in
-                    _syncers.forEach { syncer in
+                    for syncer in _syncers {
                         group.addTask {
                             try await syncer.transactions()
                         }
@@ -106,11 +106,9 @@ class TransactionSyncManager {
             }
         }.store(in: &tasks)
     }
-
 }
 
 extension TransactionSyncManager {
-
     var statePublisher: AnyPublisher<SyncState, Never> {
         stateSubject.eraseToAnyPublisher()
     }
@@ -132,5 +130,4 @@ extension TransactionSyncManager {
             self._sync()
         }
     }
-
 }

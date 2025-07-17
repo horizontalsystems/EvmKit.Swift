@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 import ObjectMapper
 
 public struct ProviderInternalTransaction: ImmutableMappable {
@@ -23,13 +23,12 @@ public struct ProviderInternalTransaction: ImmutableMappable {
 
     var internalTransaction: InternalTransaction {
         InternalTransaction(
-                hash: hash,
-                blockNumber: blockNumber,
-                from: from,
-                to: to,
-                value: value,
-                traceId: traceId
+            hash: hash,
+            blockNumber: blockNumber,
+            from: from,
+            to: to,
+            value: value,
+            traceId: traceId
         )
     }
-
 }

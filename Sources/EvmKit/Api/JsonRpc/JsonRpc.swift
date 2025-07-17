@@ -14,25 +14,24 @@ class JsonRpc<T> {
             "jsonrpc": "2.0",
             "method": method,
             "params": params,
-            "id": id
+            "id": id,
         ]
     }
 
-    func parse(result: Any) throws -> T {
+    func parse(result _: Any) throws -> T {
         fatalError("This method should be overridden")
     }
 
     func parse(response: JsonRpcResponse) throws -> T {
         switch response {
-        case .success(let successResponse):
+        case let .success(successResponse):
             guard let result = successResponse.result else {
                 throw JsonRpcResponse.ResponseError.invalidResult(value: successResponse.result)
             }
 
             return try parse(result: result)
-        case .error(let errorResponse):
+        case let .error(errorResponse):
             throw JsonRpcResponse.ResponseError.rpcError(errorResponse.error)
         }
     }
-
 }

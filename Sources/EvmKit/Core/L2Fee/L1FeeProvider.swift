@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 import HsToolKit
 
 public class L1FeeProvider {
@@ -12,9 +12,8 @@ public class L1FeeProvider {
     }
 }
 
-extension L1FeeProvider {
-
-    public func l1Fee(gasPrice: GasPrice, gasLimit: Int, to: Address, value: BigUInt, data: Data) async throws -> BigUInt {
+public extension L1FeeProvider {
+    func l1Fee(gasPrice: GasPrice, gasLimit: Int, to: Address, value: BigUInt, data: Data) async throws -> BigUInt {
         let rawTransaction = RawTransaction(gasPrice: gasPrice, gasLimit: gasLimit, to: to, value: value, data: data, nonce: 1)
         let encoded = TransactionBuilder.encode(rawTransaction: rawTransaction, signature: nil, chainId: evmKit.chain.id)
 
@@ -31,7 +30,6 @@ extension L1FeeProvider {
 }
 
 extension L1FeeProvider {
-
     class L1FeeMethod: ContractMethod {
         let transaction: Data
 
@@ -51,13 +49,10 @@ extension L1FeeProvider {
     public enum L1FeeError: Error {
         case invalidHex
     }
-
 }
 
-extension L1FeeProvider {
-
-     public static func instance(evmKit: EvmKit.Kit, contractAddress: Address, minLogLevel: Logger.Level = .error) -> L1FeeProvider {
+public extension L1FeeProvider {
+    static func instance(evmKit: EvmKit.Kit, contractAddress: Address, minLogLevel _: Logger.Level = .error) -> L1FeeProvider {
         L1FeeProvider(evmKit: evmKit, contractAddress: contractAddress)
     }
-
 }

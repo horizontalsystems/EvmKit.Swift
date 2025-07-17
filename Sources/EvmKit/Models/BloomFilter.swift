@@ -12,17 +12,17 @@ public class BloomFilter {
         let utf16Code = character.utf16
         let charCode = utf16Code[utf16Code.startIndex]
 
-        if (charCode >= 48 && charCode <= 57) {
+        if charCode >= 48, charCode <= 57 {
             /* ['0'..'9'] -> [0..9] */
             return charCode - 48
         }
 
-        if (charCode >= 65 && charCode <= 70) {
+        if charCode >= 65, charCode <= 70 {
             /* ['A'..'F'] -> [10..15] */
             return charCode - 55
         }
 
-        if (charCode >= 97 && charCode <= 102) {
+        if charCode >= 97, charCode <= 102 {
             /* ['a'..'f'] -> [10..15] */
             return charCode - 87
         }
@@ -30,11 +30,10 @@ public class BloomFilter {
         return nil
     }
 
-
     private func mayContain(element: Data) -> Bool {
         let hash = Crypto.sha3(element)
 
-        for i in 0..<3 {
+        for i in 0 ..< 3 {
             let uInt16Position = i * 2
 
             let bitPosition = ((UInt16(hash[uInt16Position]) << 8) + UInt16(hash[uInt16Position + 1])) & 2047
@@ -48,7 +47,7 @@ public class BloomFilter {
 
             let offset: UInt16 = 1 << (bitPosition % 4)
 
-            if ((code & offset) != offset) {
+            if (code & offset) != offset {
                 return false
             }
         }
@@ -63,5 +62,4 @@ public class BloomFilter {
     func mayContain(userAddress: Address) -> Bool {
         mayContain(element: Data(count: 12) + userAddress.raw)
     }
-
 }

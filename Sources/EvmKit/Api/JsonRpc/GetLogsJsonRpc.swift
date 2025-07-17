@@ -2,23 +2,22 @@ import Foundation
 import HsExtensions
 
 class GetLogsJsonRpc: JsonRpc<[TransactionLog]> {
-
     init(address: Address?, fromBlock: DefaultBlockParameter?, toBlock: DefaultBlockParameter?, topics: [Any?]?) {
         var params = [String: Any]()
 
-        if let address = address {
+        if let address {
             params["address"] = address.hex
         }
 
-        if let fromBlock = fromBlock {
+        if let fromBlock {
             params["fromBlock"] = fromBlock.raw
         }
 
-        if let toBlock = toBlock {
+        if let toBlock {
             params["toBlock"] = toBlock.raw
         }
 
-        if let topics = topics {
+        if let topics {
             params["topics"] = topics.map { topic -> Any? in
                 if let array = topic as? [Data?] {
                     return array.map { topic -> String? in
@@ -33,8 +32,8 @@ class GetLogsJsonRpc: JsonRpc<[TransactionLog]> {
         }
 
         super.init(
-                method: "eth_getLogs",
-                params: [params]
+            method: "eth_getLogs",
+            params: [params]
         )
     }
 
@@ -47,5 +46,4 @@ class GetLogsJsonRpc: JsonRpc<[TransactionLog]> {
             try TransactionLog(JSONObject: jsonObject)
         }
     }
-
 }

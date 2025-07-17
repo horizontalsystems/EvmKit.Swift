@@ -11,9 +11,9 @@ public class OutgoingDecoration: TransactionDecoration {
         self.sentToSelf = sentToSelf
     }
 
-    public override func tags() -> [TransactionTag] {
+    override public func tags() -> [TransactionTag] {
         var tags = [
-            TransactionTag(type: .outgoing, protocol: .native)
+            TransactionTag(type: .outgoing, protocol: .native, addresses: [to.hex]),
         ]
 
         if sentToSelf {
@@ -22,5 +22,4 @@ public class OutgoingDecoration: TransactionDecoration {
 
         return tags
     }
-
 }

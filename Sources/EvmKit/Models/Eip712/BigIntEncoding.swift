@@ -4,8 +4,8 @@
 // terms governing use, modification, and redistribution, is contained in the
 // file LICENSE at the root of the source code distribution tree.
 
-import Foundation
 import BigInt
+import Foundation
 
 extension BigInt {
     /// Serializes the `BigInt` with the specified bit width.

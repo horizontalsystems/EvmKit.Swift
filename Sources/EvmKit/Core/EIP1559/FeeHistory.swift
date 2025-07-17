@@ -12,5 +12,4 @@ public struct FeeHistory: ImmutableMappable {
         oldestBlock = try map.value("oldestBlock", using: HexIntTransform())
         reward = try map.value("reward", using: HexIntTransform())
     }
-
 }

@@ -1,8 +1,7 @@
-import Foundation
 import BigInt
+import Foundation
 
 class RLPElement {
-
     let type: RLP.ElementType
     let lengthOfLengthBytes: Int
     let length: Int
@@ -71,11 +70,10 @@ class RLPElement {
         self.length = length
         self.lengthOfLengthBytes = lengthOfLengthBytes
         self.dataValue = dataValue
-        self._listValue = listValue
+        _listValue = listValue
     }
 
     func isList() -> Bool {
-        return type == .list
+        type == .list
     }
-
 }

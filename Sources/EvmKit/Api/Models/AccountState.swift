@@ -1,5 +1,5 @@
-import GRDB
 import BigInt
+import GRDB
 
 public class AccountState: Record {
     private static let primaryKey = "primaryKey"
@@ -16,7 +16,7 @@ public class AccountState: Record {
         super.init()
     }
 
-    override class public var databaseTableName: String {
+    override public class var databaseTableName: String {
         "account_states"
     }
 
@@ -38,13 +38,10 @@ public class AccountState: Record {
         container[Columns.balance] = balance
         container[Columns.nonce] = nonce
     }
-
 }
 
 extension AccountState: Equatable {
-
-    public static func ==(lhs: AccountState, rhs: AccountState) -> Bool {
+    public static func == (lhs: AccountState, rhs: AccountState) -> Bool {
         lhs.balance == rhs.balance && lhs.nonce == lhs.nonce
     }
-
 }

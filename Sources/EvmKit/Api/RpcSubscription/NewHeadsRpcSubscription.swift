@@ -1,7 +1,6 @@
 import HsExtensions
 
 class NewHeadsRpcSubscription: RpcSubscription<RpcBlockHeader> {
-
     init() {
         super.init(params: ["newHeads"])
     }
@@ -21,17 +20,14 @@ class NewHeadsRpcSubscription: RpcSubscription<RpcBlockHeader> {
 
         return RpcBlockHeader(number: number, logsBloom: logsBloom)
     }
-
 }
 
 extension NewHeadsRpcSubscription {
-
     enum ParseError: Error {
         case invalidResult(result: Any)
         case noBlockNumber(resultMap: [String: Any])
         case noLogsBloom(resultMap: [String: Any])
     }
-
 }
 
 struct RpcBlockHeader {

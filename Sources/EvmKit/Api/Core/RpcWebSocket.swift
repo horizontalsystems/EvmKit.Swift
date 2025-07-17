@@ -11,11 +11,9 @@ class RpcWebSocket {
         self.socket = socket
         self.logger = logger
     }
-
 }
 
 extension RpcWebSocket: IRpcWebSocket {
-
     var source: String {
         socket.source
     }
@@ -28,7 +26,7 @@ extension RpcWebSocket: IRpcWebSocket {
         socket.stop()
     }
 
-    func send<T>(rpc: JsonRpc<T>, rpcId: Int) throws {
+    func send(rpc: JsonRpc<some Any>, rpcId: Int) throws {
         let parameters = rpc.parameters(id: rpcId)
         let data = try JSONSerialization.data(withJSONObject: parameters)
 
@@ -36,11 +34,9 @@ extension RpcWebSocket: IRpcWebSocket {
 
         logger?.debug("Send RPC: \(String(data: data, encoding: .utf8) ?? "nil")")
     }
-
 }
 
 extension RpcWebSocket: IWebSocketDelegate {
-
     func didUpdate(state: WebSocketState) {
         delegate?.didUpdate(socketState: state)
     }
@@ -66,13 +62,10 @@ extension RpcWebSocket: IWebSocketDelegate {
             didReceive(data: data)
         }
     }
-
 }
 
 extension RpcWebSocket {
-
     enum ParseError: Error {
         case invalidResponse(jsonObject: Any)
     }
-
 }

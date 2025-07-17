@@ -11,7 +11,6 @@ struct RpcSubscriptionResponse: ImmutableMappable {
 }
 
 extension RpcSubscriptionResponse {
-
     struct Params: ImmutableMappable {
         let subscriptionId: String
         let result: Any
@@ -21,5 +20,4 @@ extension RpcSubscriptionResponse {
             result = try map.value("result")
         }
     }
-
 }

@@ -1,6 +1,6 @@
-import Foundation
-import Combine
 import BigInt
+import Combine
+import Foundation
 
 class TransactionManager {
     private let userAddress: Address
@@ -21,8 +21,8 @@ class TransactionManager {
     }
 
     private func save(transactions: [Transaction]) {
-        let existingTransactions = storage.transactions(hashes: transactions.map { $0.hash })
-        let existingTransactionMap = Dictionary(existingTransactions.map { ($0.hash, $0) }, uniquingKeysWith: { (first, _) in first })
+        let existingTransactions = storage.transactions(hashes: transactions.map(\.hash))
+        let existingTransactionMap = Dictionary(existingTransactions.map { ($0.hash, $0) }, uniquingKeysWith: { first, _ in first })
 
         let mergedTransactions = transactions.map { transaction in
             if let existingTransaction = existingTransactionMap[transaction.hash] {
@@ -42,7 +42,7 @@ class TransactionManager {
             return []
         }
 
-        let nonces = Array(Set(pendingTransactions.compactMap { $0.nonce }))
+        let nonces = Array(Set(pendingTransactions.compactMap(\.nonce)))
 
         let nonPendingTransactions = storage.nonPendingTransactions(from: userAddress, nonces: nonces)
         var processedTransactions = [Transaction]()
@@ -60,20 +60,18 @@ class TransactionManager {
 
         return processedTransactions
     }
-
 }
 
 extension TransactionManager {
-
     var fullTransactionsPublisher: AnyPublisher<([FullTransaction], Bool), Never> {
         fullTransactionsSubject.eraseToAnyPublisher()
     }
 
     func etherTransferTransactionData(to: Address, value: BigUInt) -> TransactionData {
         TransactionData(
-                to: to,
-                value: value,
-                input: Data()
+            to: to,
+            value: value,
+            input: Data()
         )
     }
 
@@ -88,10 +86,10 @@ extension TransactionManager {
             async let providerInternalTransactions = try transactionProvider.internalTransactions(transactionHash: hash)
 
             fullRpcTransaction = try await FullRpcTransaction(
-                    rpcTransaction: rpcTransaction,
-                    rpcTransactionReceipt: rpcTransactionReceipt,
-                    rpcBlock: rpcBlock,
-                    providerInternalTransactions: providerInternalTransactions
+                rpcTransaction: rpcTransaction,
+                rpcTransactionReceipt: rpcTransactionReceipt,
+                rpcBlock: rpcBlock,
+                providerInternalTransactions: providerInternalTransactions
             )
         } else {
             fullRpcTransaction = FullRpcTransaction(rpcTransaction: rpcTransaction)
@@ -102,27 +100,32 @@ extension TransactionManager {
 
     func fullTransactionsPublisher(tagQueries: [TransactionTagQuery]) -> AnyPublisher<[FullTransaction], Never> {
         fullTransactionsWithTagsSubject
-                .map { transactionsWithTags in
-                    transactionsWithTags.compactMap { (transaction: FullTransaction, tags: [TransactionTag]) -> FullTransaction? in
-                        for tagQuery in tagQueries {
-                            for tag in tags {
-                                if tag.conforms(tagQuery: tagQuery) {
-                                    return transaction
-                                }
+            .map { transactionsWithTags in
+                transactionsWithTags.compactMap { (transaction: FullTransaction, tags: [TransactionTag]) -> FullTransaction? in
+                    for tagQuery in tagQueries {
+                        for tag in tags {
+                            if tag.conforms(tagQuery: tagQuery) {
+                                return transaction
                             }
                         }
-
-                        return nil
                     }
+
+                    return nil
                 }
-                .filter { transactions in
-                    transactions.count > 0
-                }
-                .eraseToAnyPublisher()
+            }
+            .filter { transactions in
+                transactions.count > 0
+            }
+            .eraseToAnyPublisher()
     }
 
     func fullTransactions(tagQueries: [TransactionTagQuery], fromHash: Data?, limit: Int?) -> [FullTransaction] {
         let transactions = storage.transactionsBefore(tagQueries: tagQueries, hash: fromHash, limit: limit)
+        return decorationManager.decorate(transactions: transactions)
+    }
+
+    func fullTransactionsAfter(transactionHash: Data?) -> [FullTransaction] {
+        let transactions = storage.transactionsAfter(transactionHash: transactionHash)
         return decorationManager.decorate(transactions: transactions)
     }
 
@@ -175,5 +178,4 @@ extension TransactionManager {
             return []
         }
     }
-
 }

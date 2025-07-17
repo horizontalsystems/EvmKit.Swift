@@ -10,5 +10,4 @@ public class Signature {
         self.r = r
         self.s = s
     }
-
 }

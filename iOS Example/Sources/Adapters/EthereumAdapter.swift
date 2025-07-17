@@ -1,7 +1,7 @@
-import Foundation
+import BigInt
 import Combine
 import EvmKit
-import BigInt
+import Foundation
 
 class EthereumAdapter {
     private let evmKit: Kit
@@ -23,26 +23,22 @@ class EthereumAdapter {
         }
 
         return TransactionRecord(
-                transactionHash: transaction.hash.hs.hexString,
-                transactionHashData: transaction.hash,
-                timestamp: transaction.timestamp,
-                isFailed: transaction.isFailed,
-                from: transaction.from,
-                to: transaction.to,
-                amount: amount,
-                input: transaction.input.map {
-                    $0.hs.hexString
-                },
-                blockHeight: transaction.blockNumber,
-                transactionIndex: transaction.transactionIndex,
-                decoration: String(describing: fullTransaction.decoration)
+            transactionHash: transaction.hash.hs.hexString,
+            transactionHashData: transaction.hash,
+            timestamp: transaction.timestamp,
+            isFailed: transaction.isFailed,
+            from: transaction.from,
+            to: transaction.to,
+            amount: amount,
+            input: transaction.input.map(\.hs.hexString),
+            blockHeight: transaction.blockNumber,
+            transactionIndex: transaction.transactionIndex,
+            decoration: String(describing: fullTransaction.decoration)
         )
     }
-
 }
 
 extension EthereumAdapter {
-
     func start() {
         evmKit.start()
     }
@@ -111,7 +107,7 @@ extension EthereumAdapter {
         evmKit.transactions(tagQueries: [], fromHash: hash, limit: limit).compactMap { transactionRecord(fullTransaction: $0) }
     }
 
-    func transaction(hash: Data, interTransactionIndex: Int) -> TransactionRecord? {
+    func transaction(hash: Data, interTransactionIndex _: Int) -> TransactionRecord? {
         evmKit.transaction(hash: hash).map { transactionRecord(fullTransaction: $0) }
     }
 
@@ -125,7 +121,7 @@ extension EthereumAdapter {
     }
 
     func send(to: Address, amount: Decimal, gasLimit: Int, gasPrice: GasPrice) async throws {
-        guard let signer = signer else {
+        guard let signer else {
             throw SendError.noSigner
         }
 
@@ -137,13 +133,10 @@ extension EthereumAdapter {
 
         _ = try await evmKit.send(rawTransaction: rawTransaction, signature: signature)
     }
-
 }
 
 extension EthereumAdapter {
-
     enum SendError: Error {
         case noSigner
     }
-
 }

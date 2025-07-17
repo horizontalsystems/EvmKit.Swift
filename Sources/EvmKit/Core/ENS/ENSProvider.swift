@@ -20,12 +20,10 @@ public class ENSProvider {
         let address = data.prefix(32).suffix(20).hs.hexString
         return try Address(hex: address)
     }
-
 }
 
-extension ENSProvider {
-
-    public func resolveAddress(domain: String) async throws -> Address {
+public extension ENSProvider {
+    func resolveAddress(domain: String) async throws -> Address {
         guard let resolverAddress = try? await resolve(name: domain, level: .resolver) else {
             throw ResolveError.noAnyResolver
         }
@@ -36,16 +34,14 @@ extension ENSProvider {
 
         return address
     }
-
 }
 
 extension ENSProvider {
-
     class ResolverMethod: ContractMethod {
-        private let hash: String
+        private let hash: Data32
         private let method: String
 
-        init(hash: String, method: String) {
+        init(hash: Data32, method: String) {
             self.hash = hash
             self.method = method
         }
@@ -58,11 +54,9 @@ extension ENSProvider {
             [hash]
         }
     }
-
 }
 
 extension ENSProvider {
-
     enum Level {
         case resolver
         case addr(resolver: Address)
@@ -77,29 +71,25 @@ extension ENSProvider {
         var address: Address {
             switch self {
             case .resolver: return ENSProvider.registryAddress
-            case .addr(let address): return address
+            case let .addr(address): return address
             }
         }
     }
-
 }
 
-extension ENSProvider {
-
-    public enum ResolveError: Error {
+public extension ENSProvider {
+    enum ResolveError: Error {
         case noAnyResolver
         case noAnyAddress
     }
 
-    public enum RpcSourceError: Error {
+    enum RpcSourceError: Error {
         case websocketNotSupported
     }
-
 }
 
-extension ENSProvider {
-
-    public static func instance(rpcSource: RpcSource, minLogLevel: Logger.Level = .error) throws -> ENSProvider {
+public extension ENSProvider {
+    static func instance(rpcSource: RpcSource, minLogLevel: Logger.Level = .error) throws -> ENSProvider {
         let logger = Logger(minLogLevel: minLogLevel)
         let networkManager = NetworkManager(logger: logger)
         let rpcApiProvider: IRpcApiProvider
@@ -113,5 +103,4 @@ extension ENSProvider {
 
         return ENSProvider(rpcApiProvider: rpcApiProvider)
     }
-
 }

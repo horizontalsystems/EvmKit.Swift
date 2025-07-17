@@ -1,5 +1,5 @@
-import Foundation
 import BigInt
+import Foundation
 import HsCryptoKit
 
 class EthSigner {
@@ -27,5 +27,4 @@ class EthSigner {
         let signHash = try eip712TypedData.signHash()
         return try Crypto.ellipticSign(signHash, privateKey: privateKey)
     }
-
 }
