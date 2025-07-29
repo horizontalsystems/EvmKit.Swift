@@ -5,12 +5,12 @@ public class TransactionBuilder {
     private let chainId: Int
     private let address: Address
 
-    init(chain: Chain, address: Address) {
+    public init(chain: Chain, address: Address) {
         chainId = chain.id
         self.address = address
     }
 
-    func transaction(rawTransaction: RawTransaction, signature: Signature) -> Transaction {
+    public func transaction(rawTransaction: RawTransaction, signature: Signature) -> Transaction {
         let transactionHash = Crypto.sha3(encode(rawTransaction: rawTransaction, signature: signature))
 
         var maxFeePerGas: Int?
@@ -36,7 +36,7 @@ public class TransactionBuilder {
         )
     }
 
-    func encode(rawTransaction: RawTransaction, signature: Signature?) -> Data {
+    public func encode(rawTransaction: RawTransaction, signature: Signature?) -> Data {
         Self.encode(rawTransaction: rawTransaction, signature: signature, chainId: chainId)
     }
 }

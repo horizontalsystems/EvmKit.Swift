@@ -4,7 +4,7 @@ public enum DefaultBlockParameter {
     case latest
     case pending
 
-    var raw: String {
+    public var raw: String {
         switch self {
         case let .blockNumber(value):
             return "0x" + String(value, radix: 16)

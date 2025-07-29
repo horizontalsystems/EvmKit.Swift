@@ -2,7 +2,7 @@ import BigInt
 import Combine
 import Foundation
 
-class TransactionManager {
+public class TransactionManager {
     private let userAddress: Address
     private let storage: TransactionStorage
     private let decorationManager: DecorationManager
@@ -141,7 +141,7 @@ extension TransactionManager {
         storage.transaction(hash: hash).flatMap { decorationManager.decorate(transactions: [$0]).first }
     }
 
-    @discardableResult func handle(transactions: [Transaction], initial: Bool = false) -> [FullTransaction] {
+    @discardableResult public func handle(transactions: [Transaction], initial: Bool = false) -> [FullTransaction] {
         guard !transactions.isEmpty else {
             return []
         }

@@ -1,6 +1,6 @@
 import ObjectMapper
 
-class JsonRpc<T> {
+public class JsonRpc<T> {
     private let method: String
     private let params: [Any]
 
