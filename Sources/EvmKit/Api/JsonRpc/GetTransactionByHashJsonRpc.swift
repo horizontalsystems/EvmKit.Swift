@@ -1,8 +1,8 @@
 import Foundation
 import HsExtensions
 
-class GetTransactionByHashJsonRpc: JsonRpc<RpcTransaction> {
-    init(transactionHash: Data) {
+public class GetTransactionByHashJsonRpc: JsonRpc<RpcTransaction> {
+    public init(transactionHash: Data) {
         super.init(
             method: "eth_getTransactionByHash",
             params: [transactionHash.hs.hexString]

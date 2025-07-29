@@ -7,6 +7,7 @@ class DecorationManager {
     private var methodDecorators = [IMethodDecorator]()
     private var eventDecorators = [IEventDecorator]()
     private var transactionDecorators = [ITransactionDecorator]()
+    private var extraDecorators = [IExtraDecorator]()
 
     init(userAddress: Address, storage: TransactionStorage) {
         self.userAddress = userAddress
@@ -66,6 +67,16 @@ class DecorationManager {
             eventInstances: eventInstances
         )
     }
+    
+    private func extra(from: Address?, to: Address?, value: BigUInt?, contractMethod: ContractMethod?, internalTransactions: [InternalTransaction] = [], eventInstances: [ContractEventInstance] = []) -> [String: Any] {
+        var extra: [String: Any] = [:]
+        for extraDecorator in extraDecorators {
+            let extraFields = extraDecorator.extra(from: from, to: to, value: value, contractMethod: contractMethod, internalTransactions: internalTransactions, eventInstances: eventInstances)
+            extra = extra.merging(extraFields) { $1 }
+        }
+
+        return extra
+    }
 
     private func eventInstances(logs: [TransactionLog]) -> [ContractEventInstance] {
         var eventInstances = [ContractEventInstance]()
@@ -89,6 +100,10 @@ extension DecorationManager {
 
     func add(transactionDecorator: ITransactionDecorator) {
         transactionDecorators.append(transactionDecorator)
+    }
+
+    func add(extraDecorator: IExtraDecorator) {
+        extraDecorators.append(extraDecorator)
     }
 
     func decorateTransaction(from: Address, transactionData: TransactionData) -> TransactionDecoration? {
@@ -124,8 +139,17 @@ extension DecorationManager {
                 internalTransactions: internalTransactionsMap[transaction.hash] ?? [],
                 eventInstances: eventInstancesMap[transaction.hash] ?? []
             )
+            
+            let extra = extra(
+                from: transaction.from,
+                to: transaction.to,
+                value: transaction.value,
+                contractMethod: contractMethod(input: transaction.input),
+                internalTransactions: internalTransactionsMap[transaction.hash] ?? [],
+                eventInstances: eventInstancesMap[transaction.hash] ?? []
+            )
 
-            return FullTransaction(transaction: transaction, decoration: decoration)
+            return FullTransaction(transaction: transaction, decoration: decoration, extra: extra)
         }
     }
 
@@ -142,16 +166,27 @@ extension DecorationManager {
 
         let transaction = fullRpcTransaction.transaction(timestamp: timestamp)
 
+        let internalTransactions = fullRpcTransaction.providerInternalTransactions.map(\.internalTransaction)
+        let events = fullRpcTransaction.rpcTransactionReceipt.map { eventInstances(logs: $0.logs) } ?? []
         let decoration = decoration(
             from: transaction.from,
             to: transaction.to,
             value: transaction.value,
             contractMethod: contractMethod(input: transaction.input),
-            internalTransactions: fullRpcTransaction.providerInternalTransactions.map(\.internalTransaction),
-            eventInstances: fullRpcTransaction.rpcTransactionReceipt.map { eventInstances(logs: $0.logs) } ?? []
+            internalTransactions: internalTransactions,
+            eventInstances: events
         )
 
-        return FullTransaction(transaction: transaction, decoration: decoration)
+        let extra = extra(
+            from: transaction.from,
+            to: transaction.to,
+            value: transaction.value,
+            contractMethod: contractMethod(input: transaction.input),
+            internalTransactions: internalTransactions,
+            eventInstances: events
+        )
+
+        return FullTransaction(transaction: transaction, decoration: decoration, extra: extra)
     }
 }
 

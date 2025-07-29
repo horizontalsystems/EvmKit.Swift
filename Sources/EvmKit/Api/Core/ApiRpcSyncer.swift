@@ -5,8 +5,8 @@ import HsExtensions
 import HsToolKit
 import UIKit
 
-class ApiRpcSyncer {
-    weak var delegate: IRpcSyncerDelegate?
+public class ApiRpcSyncer {
+    weak public var delegate: IRpcSyncerDelegate?
 
     private let rpcApiProvider: IRpcApiProvider
     private let reachabilityManager: ReachabilityManager
@@ -17,7 +17,7 @@ class ApiRpcSyncer {
     private var isStarted = false
     private var timer: Timer?
 
-    private(set) var state: SyncerState = .notReady(error: Kit.SyncError.notStarted) {
+    private(set) public var state: SyncerState = .notReady(error: Kit.SyncError.notStarted) {
         didSet {
             if state != oldValue {
                 delegate?.didUpdate(state: state)
@@ -25,7 +25,7 @@ class ApiRpcSyncer {
         }
     }
 
-    init(rpcApiProvider: IRpcApiProvider, reachabilityManager: ReachabilityManager, syncInterval: TimeInterval) {
+    public init(rpcApiProvider: IRpcApiProvider, reachabilityManager: ReachabilityManager, syncInterval: TimeInterval) {
         self.rpcApiProvider = rpcApiProvider
         self.reachabilityManager = reachabilityManager
         self.syncInterval = syncInterval
@@ -90,17 +90,17 @@ class ApiRpcSyncer {
 }
 
 extension ApiRpcSyncer: IRpcSyncer {
-    var source: String {
+    public var source: String {
         "API \(rpcApiProvider.source)"
     }
 
-    func start() {
+    public func start() {
         isStarted = true
 
         handleUpdate(reachable: reachabilityManager.isReachable)
     }
 
-    func stop() {
+    public func stop() {
         isStarted = false
 
         cancellables = Set()
@@ -110,7 +110,8 @@ extension ApiRpcSyncer: IRpcSyncer {
         timer?.invalidate()
     }
 
-    func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
+    public func fetch<T>(rpc: JsonRpc<T>) async throws -> T {
         try await rpcApiProvider.fetch(rpc: rpc)
     }
 }
+

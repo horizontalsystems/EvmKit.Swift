@@ -1,7 +1,7 @@
 import BigInt
 import HsToolKit
 
-protocol IRpcApiProvider {
+public protocol IRpcApiProvider {
     var source: String { get }
     func fetch<T>(rpc: JsonRpc<T>) async throws -> T
 }
@@ -14,7 +14,7 @@ protocol IApiStorage {
     func save(accountState: AccountState)
 }
 
-protocol IRpcSyncer: AnyObject {
+public protocol IRpcSyncer: AnyObject {
     var delegate: IRpcSyncerDelegate? { get set }
 
     var source: String { get }
@@ -26,7 +26,7 @@ protocol IRpcSyncer: AnyObject {
     func fetch<T>(rpc: JsonRpc<T>) async throws -> T
 }
 
-protocol IRpcSyncerDelegate: AnyObject {
+public protocol IRpcSyncerDelegate: AnyObject {
     func didUpdate(state: SyncerState)
     func didUpdate(lastBlockHeight: Int)
 }
@@ -47,7 +47,7 @@ protocol IRpcWebSocketDelegate: AnyObject {
     func didReceive(subscriptionResponse: RpcSubscriptionResponse)
 }
 
-enum SyncerState {
+public enum SyncerState {
     case preparing
     case ready
     case notReady(error: Error)

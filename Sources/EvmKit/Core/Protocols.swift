@@ -26,6 +26,10 @@ protocol IBlockchain {
     func fetch<T>(rpcRequest: JsonRpc<T>) async throws -> T
 }
 
+public protocol INonceProvider {
+    func nonce(defaultBlockParameter: DefaultBlockParameter) async throws -> Int
+}
+
 protocol IBlockchainDelegate: AnyObject {
     func onUpdate(lastBlockHeight: Int)
     func onUpdate(syncState: SyncState)
@@ -52,6 +56,10 @@ public protocol IEventDecorator {
 
 public protocol ITransactionDecorator {
     func decoration(from: Address?, to: Address?, value: BigUInt?, contractMethod: ContractMethod?, internalTransactions: [InternalTransaction], eventInstances: [ContractEventInstance]) -> TransactionDecoration?
+}
+
+public protocol IExtraDecorator {
+    func extra(from: Address?, to: Address?, value: BigUInt?, contractMethod: ContractMethod?, internalTransactions: [InternalTransaction], eventInstances: [ContractEventInstance]) -> [String: Any]
 }
 
 public protocol ITransactionProvider {
