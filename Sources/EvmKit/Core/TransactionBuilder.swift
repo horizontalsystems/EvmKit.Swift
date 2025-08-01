@@ -41,8 +41,8 @@ public class TransactionBuilder {
     }
 }
 
-extension TransactionBuilder {
-    public static func encode(rawTransaction: RawTransaction, signature: Signature?, chainId: Int = 1) -> Data {
+public extension TransactionBuilder {
+    static func encode(rawTransaction: RawTransaction, signature: Signature?, chainId: Int = 1) -> Data {
         let signatureArray: [Any?] = [
             signature?.v,
             signature?.r,

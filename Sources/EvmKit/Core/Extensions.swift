@@ -15,8 +15,8 @@ extension BigUInt: DatabaseValueConvertible {
     }
 }
 
-func isOptional<T>(_ type: T.Type) -> Bool {
-    return (type is OptionalProtocol.Type)
+func isOptional(_ type: (some Any).Type) -> Bool {
+    type is OptionalProtocol.Type
 }
 
 protocol OptionalProtocol {
@@ -25,6 +25,6 @@ protocol OptionalProtocol {
 
 extension Optional: OptionalProtocol {
     static var wrappedType: Any.Type {
-        return Wrapped.self
+        Wrapped.self
     }
 }

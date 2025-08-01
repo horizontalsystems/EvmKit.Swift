@@ -102,8 +102,7 @@ extension RpcBlockchain: IBlockchain, INonceProvider {
             do {
                 async let balance = try syncer.fetch(rpc: GetBalanceJsonRpc(address: address, defaultBlockParameter: .latest))
                 async let nonce = try syncer.fetch(rpc: GetTransactionCountJsonRpc(address: address, defaultBlockParameter: .latest))
-                // todo: здесь запрашивается последний nonce от confirmed транзакций ? Значит merkleNonce не нужен
-                
+
                 let accountState = try await AccountState(balance: balance, nonce: nonce)
                 self?.onUpdate(accountState: accountState)
                 self?.syncState = .synced

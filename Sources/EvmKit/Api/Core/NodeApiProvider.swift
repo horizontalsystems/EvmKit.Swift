@@ -34,8 +34,7 @@ public class NodeApiProvider {
                 interceptor: self,
                 responseCacherBehavior: .doNotCache
             )
-            
-            
+
             guard let rpcResponse = JsonRpcResponse.response(jsonObject: json) else {
                 throw RequestError.invalidResponse(jsonObject: json)
             }
@@ -45,7 +44,7 @@ public class NodeApiProvider {
             let nextIndex = (urlIndex + 1) % urls.count
 
             if attempt < urls.count * 2 {
-                return try await rpcResult(rpc:rpc, urlIndex: nextIndex, attempt: attempt + 1, parameters: parameters)
+                return try await rpcResult(rpc: rpc, urlIndex: nextIndex, attempt: attempt + 1, parameters: parameters)
             } else {
                 throw error
             }
@@ -81,8 +80,8 @@ extension NodeApiProvider: IRpcApiProvider {
     }
 }
 
-extension NodeApiProvider {
-    public enum RequestError: Error {
+public extension NodeApiProvider {
+    enum RequestError: Error {
         case invalidResponse(jsonObject: Any)
     }
 }

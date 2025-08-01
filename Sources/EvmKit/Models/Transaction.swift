@@ -109,8 +109,8 @@ public class Transaction: Record {
     }
 }
 
-extension Transaction {
-    public var description: String {
+public extension Transaction {
+    var description: String {
         "[hash: \(hash.hs.hexString); nonce: \(nonce?.description ?? "nil"); blockNumber: \(blockNumber.map { "\($0)" } ?? "nil"); transactionIndex: \(transactionIndex.map { "\($0)" } ?? "nil"); from: \(from?.hex ?? "nil"); to: \(to?.hex ?? "nil"); value: \(value); gasPrice: \(gasPrice); gas: \(gasLimit)]"
     }
 }
