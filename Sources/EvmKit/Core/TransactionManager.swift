@@ -137,7 +137,7 @@ extension TransactionManager {
         decorationManager.decorate(transactions: storage.transactions(hashes: hashes))
     }
 
-    func fullTransaction(hash: Data) -> FullTransaction? {
+    public func fullTransaction(hash: Data) -> FullTransaction? {
         storage.transaction(hash: hash).flatMap { decorationManager.decorate(transactions: [$0]).first }
     }
 
