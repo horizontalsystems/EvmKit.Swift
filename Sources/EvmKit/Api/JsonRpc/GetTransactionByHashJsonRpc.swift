@@ -9,7 +9,7 @@ public class GetTransactionByHashJsonRpc: JsonRpc<RpcTransaction> {
         )
     }
 
-    public override func parse(result: Any) throws -> RpcTransaction {
+    override public func parse(result: Any) throws -> RpcTransaction {
         try RpcTransaction(JSONObject: result)
     }
 }

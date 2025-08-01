@@ -6,7 +6,7 @@ import HsToolKit
 import UIKit
 
 public class ApiRpcSyncer {
-    weak public var delegate: IRpcSyncerDelegate?
+    public weak var delegate: IRpcSyncerDelegate?
 
     private let rpcApiProvider: IRpcApiProvider
     private let reachabilityManager: ReachabilityManager
@@ -17,7 +17,7 @@ public class ApiRpcSyncer {
     private var isStarted = false
     private var timer: Timer?
 
-    private(set) public var state: SyncerState = .notReady(error: Kit.SyncError.notStarted) {
+    public private(set) var state: SyncerState = .notReady(error: Kit.SyncError.notStarted) {
         didSet {
             if state != oldValue {
                 delegate?.didUpdate(state: state)
@@ -114,4 +114,3 @@ extension ApiRpcSyncer: IRpcSyncer {
         try await rpcApiProvider.fetch(rpc: rpc)
     }
 }
-

@@ -24,7 +24,7 @@ extension Chain: Hashable, Equatable {
     public static func == (lhs: Chain, rhs: Chain) -> Bool {
         lhs.id == rhs.id
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
         hasher.combine(coinType)

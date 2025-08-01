@@ -29,7 +29,7 @@ open class JsonRpc<T> {
 
             guard let result = successResponse.result else {
                 if canBeOptional {
-                    return Optional<Any>.none as! T
+                    return Any?.none as! T
                 }
                 throw JsonRpcResponse.ResponseError.invalidResult(value: successResponse.result)
             }

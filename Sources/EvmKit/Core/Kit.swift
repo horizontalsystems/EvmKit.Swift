@@ -218,7 +218,7 @@ public extension Kit {
     func add(transactionSyncer: ITransactionSyncer) {
         transactionSyncManager.add(syncer: transactionSyncer)
     }
-    
+
     func add(nonceProvider: INonceProvider) {
         self.nonceProvider.add(provider: nonceProvider)
     }
@@ -234,7 +234,7 @@ public extension Kit {
     func add(transactionDecorator: ITransactionDecorator) {
         decorationManager.add(transactionDecorator: transactionDecorator)
     }
-    
+
     func add(extraDecorator: IExtraDecorator) {
         decorationManager.add(extraDecorator: extraDecorator)
     }
@@ -312,7 +312,7 @@ extension Kit {
             let socket = WebSocket(url: url, reachabilityManager: reachabilityManager, auth: auth, logger: logger)
             syncer = WebSocketRpcSyncer.instance(socket: socket, logger: logger)
         }
-        
+
         let transactionBuilder = TransactionBuilder(chain: chain, address: address)
         let transactionProvider: ITransactionProvider = transactionProvider(transactionSource: transactionSource, address: address, chainId: chain.id, logger: logger)
 
@@ -330,7 +330,7 @@ extension Kit {
 
         transactionSyncManager.add(syncer: ethereumTransactionSyncer)
         transactionSyncManager.add(syncer: internalTransactionSyncer)
-        
+
         let nonceProvider = NonceProvider()
         nonceProvider.add(provider: blockchain)
 

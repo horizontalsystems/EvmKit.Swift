@@ -67,7 +67,7 @@ class DecorationManager {
             eventInstances: eventInstances
         )
     }
-    
+
     private func extra(hash: Data) -> [String: Any] {
         var extra: [String: Any] = [:]
         for extraDecorator in extraDecorators {
@@ -139,7 +139,7 @@ extension DecorationManager {
                 internalTransactions: internalTransactionsMap[transaction.hash] ?? [],
                 eventInstances: eventInstancesMap[transaction.hash] ?? []
             )
-            
+
             let extra = extra(hash: transaction.hash)
 
             return FullTransaction(transaction: transaction, decoration: decoration, extra: extra)
