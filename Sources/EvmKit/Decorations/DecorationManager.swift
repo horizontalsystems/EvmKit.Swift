@@ -68,10 +68,10 @@ class DecorationManager {
         )
     }
     
-    private func extra(from: Address?, to: Address?, value: BigUInt?, contractMethod: ContractMethod?, internalTransactions: [InternalTransaction] = [], eventInstances: [ContractEventInstance] = []) -> [String: Any] {
+    private func extra(hash: Data) -> [String: Any] {
         var extra: [String: Any] = [:]
         for extraDecorator in extraDecorators {
-            let extraFields = extraDecorator.extra(from: from, to: to, value: value, contractMethod: contractMethod, internalTransactions: internalTransactions, eventInstances: eventInstances)
+            let extraFields = extraDecorator.extra(hash: hash)
             extra = extra.merging(extraFields) { $1 }
         }
 
@@ -140,14 +140,7 @@ extension DecorationManager {
                 eventInstances: eventInstancesMap[transaction.hash] ?? []
             )
             
-            let extra = extra(
-                from: transaction.from,
-                to: transaction.to,
-                value: transaction.value,
-                contractMethod: contractMethod(input: transaction.input),
-                internalTransactions: internalTransactionsMap[transaction.hash] ?? [],
-                eventInstances: eventInstancesMap[transaction.hash] ?? []
-            )
+            let extra = extra(hash: transaction.hash)
 
             return FullTransaction(transaction: transaction, decoration: decoration, extra: extra)
         }
@@ -177,14 +170,7 @@ extension DecorationManager {
             eventInstances: events
         )
 
-        let extra = extra(
-            from: transaction.from,
-            to: transaction.to,
-            value: transaction.value,
-            contractMethod: contractMethod(input: transaction.input),
-            internalTransactions: internalTransactions,
-            eventInstances: events
-        )
+        let extra = extra(hash: transaction.hash)
 
         return FullTransaction(transaction: transaction, decoration: decoration, extra: extra)
     }

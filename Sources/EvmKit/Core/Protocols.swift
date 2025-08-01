@@ -59,7 +59,7 @@ public protocol ITransactionDecorator {
 }
 
 public protocol IExtraDecorator {
-    func extra(from: Address?, to: Address?, value: BigUInt?, contractMethod: ContractMethod?, internalTransactions: [InternalTransaction], eventInstances: [ContractEventInstance]) -> [String: Any]
+    func extra(hash: Data) -> [String: Any]
 }
 
 public protocol ITransactionProvider {
