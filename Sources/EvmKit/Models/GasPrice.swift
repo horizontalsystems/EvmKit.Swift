@@ -1,4 +1,4 @@
-public enum GasPrice {
+public enum GasPrice: Equatable {
     case legacy(gasPrice: Int)
     case eip1559(maxFeePerGas: Int, maxPriorityFeePerGas: Int)
 
