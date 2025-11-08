@@ -54,70 +54,70 @@ public extension TransactionSource {
     static func bscscan(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "bscscan.com",
-            type: .etherscan(apiBaseUrl: "https://api.bscscan.com", txBaseUrl: "https://bscscan.com", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://bscscan.com", apiKeys: apiKeys)
         )
     }
 
     static func bscscanTestNet(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "testnet.bscscan.com",
-            type: .etherscan(apiBaseUrl: "https://api-testnet.bscscan.com", txBaseUrl: "https://testnet.bscscan.com", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api-testnet.etherscan.io/v2", txBaseUrl: "https://testnet.bscscan.com", apiKeys: apiKeys)
         )
     }
 
     static func polygonscan(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "polygonscan.com",
-            type: .etherscan(apiBaseUrl: "https://api.polygonscan.com", txBaseUrl: "https://polygonscan.com", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://polygonscan.com", apiKeys: apiKeys)
         )
     }
 
     static func snowtrace(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "snowtrace.io",
-            type: .etherscan(apiBaseUrl: "https://api.snowtrace.io", txBaseUrl: "https://snowtrace.io", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://snowtrace.io", apiKeys: apiKeys)
         )
     }
 
     static func optimisticEtherscan(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "optimistic.etherscan.io",
-            type: .etherscan(apiBaseUrl: "https://api-optimistic.etherscan.io", txBaseUrl: "https://optimistic.etherscan.io", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://optimistic.etherscan.io", apiKeys: apiKeys)
         )
     }
 
     static func arbiscan(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "arbiscan.io",
-            type: .etherscan(apiBaseUrl: "https://api.arbiscan.io", txBaseUrl: "https://arbiscan.io", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://arbiscan.io", apiKeys: apiKeys)
         )
     }
 
     static func gnosis(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "gnosisscan.io",
-            type: .etherscan(apiBaseUrl: "https://api.gnosisscan.io", txBaseUrl: "https://gnosisscan.io", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://gnosisscan.io", apiKeys: apiKeys)
         )
     }
 
     static func fantom(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "ftmscan.com",
-            type: .etherscan(apiBaseUrl: "https://api.ftmscan.com", txBaseUrl: "https://ftmscan.com", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://ftmscan.com", apiKeys: apiKeys)
         )
     }
 
     static func basescan(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "basescan.org",
-            type: .etherscan(apiBaseUrl: "https://api.basescan.org", txBaseUrl: "https://basescan.org", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://basescan.org", apiKeys: apiKeys)
         )
     }
 
     static func eraZkSync(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "era.zksync.network",
-            type: .etherscan(apiBaseUrl: "https://api-era.zksync.network", txBaseUrl: "https://era.zksync.network", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://era.zksync.network", apiKeys: apiKeys)
         )
     }
 }
