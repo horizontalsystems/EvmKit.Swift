@@ -77,7 +77,7 @@ public extension Chain {
             coinType: 60, // actually Optimism has coin type 614
             syncInterval: 15,
             gasLimit: 10_000_000,
-            isEIP1559Supported: false
+            isEIP1559Supported: true
         )
     }
 
@@ -87,7 +87,7 @@ public extension Chain {
             coinType: 60, // actually Arbitrum One has coin type 9001
             syncInterval: 15,
             gasLimit: 10_000_000,
-            isEIP1559Supported: false
+            isEIP1559Supported: true
         )
     }
 

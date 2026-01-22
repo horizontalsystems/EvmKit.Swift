@@ -1,4 +1,6 @@
 public enum GasPrice: Equatable {
+    public static let eip1559SurchargeBasis = 125
+
     case legacy(gasPrice: Int)
     case eip1559(maxFeePerGas: Int, maxPriorityFeePerGas: Int)
 
