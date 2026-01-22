@@ -20,14 +20,14 @@ public class EIP1559GasPriceProvider {
         let feeHistoryRequest = FeeHistoryJsonRpc(blocksCount: Self.feeHistoryBlocksCount, defaultBlockParameter: defaultBlockParameter, rewardPercentile: Self.feeHistoryRewardPercentile)
         let feeHistory = try await evmKit.fetch(rpcRequest: feeHistoryRequest)
         let tipsConsidered = feeHistory.reward.compactMap(\.first)
-        let baseFeesConsidered = feeHistory.baseFeePerGas.suffix(2)
+        let baseFeePerGas = feeHistory.baseFeePerGas.suffix(2).max()
 
-        guard !baseFeesConsidered.isEmpty, !tipsConsidered.isEmpty else {
+        guard let baseFeePerGas, !tipsConsidered.isEmpty else {
             throw EIP1559GasPriceProvider.FeeHistoryError.notAvailable
         }
 
         let maxPriorityFeePerGas = tipsConsidered.reduce(0, +) / tipsConsidered.count
-        let maxFeePerGas = (baseFeesConsidered.max() ?? 0) + maxPriorityFeePerGas
+        let maxFeePerGas = (baseFeePerGas * GasPrice.eip1559SurchargeBasis / 100) + maxPriorityFeePerGas
         return .eip1559(maxFeePerGas: maxFeePerGas, maxPriorityFeePerGas: maxPriorityFeePerGas)
     }
 }
@@ -37,14 +37,14 @@ public extension EIP1559GasPriceProvider {
         let feeHistoryRequest = FeeHistoryJsonRpc(blocksCount: Self.feeHistoryBlocksCount, defaultBlockParameter: defaultBlockParameter, rewardPercentile: Self.feeHistoryRewardPercentile)
         let feeHistory = try await RpcBlockchain.call(networkManager: networkManager, rpcSource: rpcSource, rpcRequest: feeHistoryRequest)
         let tipsConsidered = feeHistory.reward.compactMap(\.first)
-        let baseFeesConsidered = feeHistory.baseFeePerGas.suffix(2)
+        let baseFeePerGas = feeHistory.baseFeePerGas.suffix(2).max()
 
-        guard !baseFeesConsidered.isEmpty, !tipsConsidered.isEmpty else {
+        guard let baseFeePerGas, !tipsConsidered.isEmpty else {
             throw EIP1559GasPriceProvider.FeeHistoryError.notAvailable
         }
 
         let maxPriorityFeePerGas = tipsConsidered.reduce(0, +) / tipsConsidered.count
-        let maxFeePerGas = (baseFeesConsidered.max() ?? 0) + maxPriorityFeePerGas
+        let maxFeePerGas = (baseFeePerGas * GasPrice.eip1559SurchargeBasis / 100) + maxPriorityFeePerGas
         return .eip1559(maxFeePerGas: maxFeePerGas, maxPriorityFeePerGas: maxPriorityFeePerGas)
     }
 }
