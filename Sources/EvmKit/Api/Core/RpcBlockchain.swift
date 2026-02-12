@@ -174,6 +174,10 @@ extension RpcBlockchain {
     static func callRpc(contractAddress: Address, data: Data, defaultBlockParameter: DefaultBlockParameter) -> JsonRpc<Data> {
         CallJsonRpc(contractAddress: contractAddress, data: data, defaultBlockParameter: defaultBlockParameter)
     }
+
+    static func getTransactionReceiptRpc(hash: Data) -> JsonRpc<RpcTransactionReceipt> {
+        GetTransactionReceiptJsonRpc(transactionHash: hash)
+    }
 }
 
 extension RpcBlockchain {
