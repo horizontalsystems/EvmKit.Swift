@@ -394,6 +394,20 @@ public extension Kit {
         return try await rpcApiProvider.fetch(rpc: rpc)
     }
 
+    static func getTransactionReceipt(networkManager: NetworkManager, rpcSource: RpcSource, hash: Data) async throws -> RpcTransactionReceipt {
+        let rpcApiProvider: IRpcApiProvider
+
+        switch rpcSource {
+        case let .http(urls, auth):
+            rpcApiProvider = NodeApiProvider(networkManager: networkManager, urls: urls, auth: auth)
+        case .webSocket:
+            throw RpcSourceError.websocketNotSupported
+        }
+
+        let rpc = RpcBlockchain.getTransactionReceiptRpc(hash: hash)
+        return try await rpcApiProvider.fetch(rpc: rpc)
+    }
+
     static func estimateGas(networkManager: NetworkManager, rpcSource: RpcSource, chain: Chain, from: Address, to: Address?, amount: BigUInt?, gasPrice: GasPrice, data: Data?) async throws -> Int {
         try await RpcBlockchain.estimateGas(networkManager: networkManager, rpcSource: rpcSource, from: from, to: to, amount: amount, gasLimit: chain.gasLimit, gasPrice: gasPrice, data: data)
     }
