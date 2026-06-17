@@ -1,7 +1,7 @@
 import BigInt
 import HsToolKit
 
-public protocol IRpcApiProvider {
+public protocol IRpcApiProvider: AnyObject {
     var source: String { get }
     func fetch<T>(rpc: JsonRpc<T>) async throws -> T
 }
