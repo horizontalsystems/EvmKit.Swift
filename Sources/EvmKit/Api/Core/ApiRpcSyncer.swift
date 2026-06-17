@@ -57,7 +57,11 @@ public class ApiRpcSyncer {
     }
 
     @objc func onFireTimer() {
-        Task { [weak self, rpcApiProvider] in
+        Task { [weak self, weak rpcApiProvider] in
+            guard let rpcApiProvider else {
+                return
+            }
+
             let lastBlockHeight = try await rpcApiProvider.fetch(rpc: BlockNumberJsonRpc())
             self?.delegate?.didUpdate(lastBlockHeight: lastBlockHeight)
         }.store(in: &tasks)

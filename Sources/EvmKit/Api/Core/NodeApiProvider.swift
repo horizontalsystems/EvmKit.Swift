@@ -24,6 +24,10 @@ public class NodeApiProvider {
     }
 
     private func rpcResult<T>(rpc: JsonRpc<T>, urlIndex: Int = 0, attempt: Int = 0, parameters: [String: Any]) async throws -> T {
+        guard urls.count > urlIndex else {
+            throw RequestError.invalidProviderIndex
+        }
+
         do {
             let json = try await networkManager.fetchJson(
                 url: urls[urlIndex],
@@ -82,6 +86,7 @@ extension NodeApiProvider: IRpcApiProvider {
 
 public extension NodeApiProvider {
     enum RequestError: Error {
+        case invalidProviderIndex
         case invalidResponse(jsonObject: Any)
     }
 }
