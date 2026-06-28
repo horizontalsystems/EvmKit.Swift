@@ -1,10 +1,10 @@
 import Foundation
 import GRDB
 
-class TransactionStorage {
+public class TransactionStorage {
     private let dbPool: DatabasePool
 
-    init(databaseDirectoryUrl: URL, databaseFileName: String) {
+    public init(databaseDirectoryUrl: URL, databaseFileName: String) {
         let databaseURL = databaseDirectoryUrl.appendingPathComponent("\(databaseFileName).sqlite")
 
         dbPool = try! DatabasePool(path: databaseURL.path)

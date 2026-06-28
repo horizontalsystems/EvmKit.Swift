@@ -1,10 +1,10 @@
 import Foundation
 import GRDB
 
-class TransactionSyncerStateStorage {
+public class TransactionSyncerStateStorage {
     private let dbPool: DatabasePool
 
-    init(databaseDirectoryUrl: URL, databaseFileName: String) {
+    public init(databaseDirectoryUrl: URL, databaseFileName: String) {
         let databaseURL = databaseDirectoryUrl.appendingPathComponent("\(databaseFileName).sqlite")
 
         dbPool = try! DatabasePool(path: databaseURL.path)
@@ -47,13 +47,13 @@ class TransactionSyncerStateStorage {
 }
 
 extension TransactionSyncerStateStorage {
-    func syncerState(syncerId: String) throws -> TransactionSyncerState? {
+    public func syncerState(syncerId: String) throws -> TransactionSyncerState? {
         try dbPool.read { db in
             try TransactionSyncerState.filter(TransactionSyncerState.Columns.syncerId == syncerId).fetchOne(db)
         }
     }
 
-    func save(syncerState: TransactionSyncerState) throws {
+    public func save(syncerState: TransactionSyncerState) throws {
         try dbPool.write { db in
             try syncerState.save(db)
         }
