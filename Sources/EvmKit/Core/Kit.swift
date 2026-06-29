@@ -228,11 +228,11 @@ public extension Kit {
         transactionSyncManager.set(syncers: syncers)
     }
 
-    var ethereumSyncer: ITransactionSyncer {
+    public var ethereumSyncer: ITransactionSyncer {
         EthereumTransactionSyncer(provider: transactionProvider, storage: transactionSyncerStateStorage)
     }
 
-    var internalSyncer: ITransactionSyncer {
+    public var internalSyncer: ITransactionSyncer {
         InternalTransactionSyncer(provider: transactionProvider, storage: transactionStorage)
     }
 
