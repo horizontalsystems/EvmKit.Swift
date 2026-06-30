@@ -40,4 +40,42 @@ public struct ProviderTokenTransaction: ImmutableMappable {
         gasUsed = try map.value("gasUsed", using: StringIntTransform())
         cumulativeGasUsed = try map.value("cumulativeGasUsed", using: StringIntTransform())
     }
+
+    public init(
+        hash: Data,
+        from: Address,
+        contractAddress: Address,
+        to: Address,
+        value: BigUInt,
+        blockNumber: Int = 0,
+        timestamp: Int = 0,
+        nonce: Int = 0,
+        blockHash: Data = Data(),
+        tokenName: String = "",
+        tokenSymbol: String = "",
+        tokenDecimal: Int = 0,
+        transactionIndex: Int = 0,
+        gasLimit: Int = 0,
+        gasPrice: Int = 0,
+        gasUsed: Int = 0,
+        cumulativeGasUsed: Int = 0
+    ) {
+        self.blockNumber = blockNumber
+        self.timestamp = timestamp
+        self.hash = hash
+        self.nonce = nonce
+        self.blockHash = blockHash
+        self.from = from
+        self.contractAddress = contractAddress
+        self.to = to
+        self.value = value
+        self.tokenName = tokenName
+        self.tokenSymbol = tokenSymbol
+        self.tokenDecimal = tokenDecimal
+        self.transactionIndex = transactionIndex
+        self.gasLimit = gasLimit
+        self.gasPrice = gasPrice
+        self.gasUsed = gasUsed
+        self.cumulativeGasUsed = cumulativeGasUsed
+    }
 }
