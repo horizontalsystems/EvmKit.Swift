@@ -351,7 +351,7 @@ extension TransactionStorage {
         }
     }
 
-    func lastInternalTransaction() -> InternalTransaction? {
+    public func lastInternalTransaction() -> InternalTransaction? {
         try! dbPool.read { db in
             try InternalTransaction
                 .filter(InternalTransaction.Columns.blockNumber != nil)
@@ -360,13 +360,13 @@ extension TransactionStorage {
         }
     }
 
-    func internalTransactions() -> [InternalTransaction] {
+    public func internalTransactions() -> [InternalTransaction] {
         try! dbPool.read { db in
             try InternalTransaction.fetchAll(db)
         }
     }
 
-    func internalTransactions(hashes: [Data]) -> [InternalTransaction] {
+    public func internalTransactions(hashes: [Data]) -> [InternalTransaction] {
         try! dbPool.read { db in
             try InternalTransaction
                 .filter(hashes.contains(InternalTransaction.Columns.hash))
@@ -374,7 +374,7 @@ extension TransactionStorage {
         }
     }
 
-    func save(internalTransactions: [InternalTransaction]) {
+    public func save(internalTransactions: [InternalTransaction]) {
         try! dbPool.write { db in
             for internalTransaction in internalTransactions {
                 try internalTransaction.save(db)

@@ -10,7 +10,7 @@ public class InternalTransaction: Record {
     public let value: BigUInt
     public let traceId: String
 
-    init(hash: Data, blockNumber: Int, from: Address, to: Address, value: BigUInt, traceId: String) {
+    public init(hash: Data, blockNumber: Int, from: Address, to: Address, value: BigUInt, traceId: String) {
         self.hash = hash
         self.blockNumber = blockNumber
         self.from = from
