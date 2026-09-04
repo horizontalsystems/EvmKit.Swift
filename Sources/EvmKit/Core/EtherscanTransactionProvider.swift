@@ -40,7 +40,7 @@ class EtherscanTransactionProvider {
             throw RequestError.invalidStatus
         }
 
-        guard status == "1" else {
+        guard status != "0" else {
             let message = map["message"] as? String
             let result = map["result"] as? String
 

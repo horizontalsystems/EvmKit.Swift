@@ -120,4 +120,11 @@ public extension TransactionSource {
             type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://era.zksync.network", apiKeys: apiKeys)
         )
     }
+
+    static func robinhood(apiKeys: [String]) -> TransactionSource {
+        TransactionSource(
+            name: "robinhoodchain.blockscout.com",
+            type: .etherscan(apiBaseUrl: "https://api.blockscout.com/v2", txBaseUrl: "https://robinhoodchain.blockscout.com", apiKeys: apiKeys)
+        )
+    }
 }

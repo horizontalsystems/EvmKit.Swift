@@ -12,13 +12,13 @@ public struct ProviderInternalTransaction: ImmutableMappable {
     public let traceId: String
 
     public init(map: Map) throws {
-        hash = try map.value("hash", using: HexDataTransform())
+        hash = try (try? map.value("hash", using: HexDataTransform())) ?? map.value("transactionHash", using: HexDataTransform())
         blockNumber = try map.value("blockNumber", using: StringIntTransform())
         timestamp = try map.value("timeStamp", using: StringIntTransform())
         from = try map.value("from", using: HexAddressTransform())
         to = try map.value("to", using: HexAddressTransform())
         value = try map.value("value", using: StringBigUIntTransform())
-        traceId = try map.value("traceId")
+        traceId = (try? map.value("traceId")) ?? ""
     }
 
     public init(

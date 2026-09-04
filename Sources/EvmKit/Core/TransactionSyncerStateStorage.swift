@@ -46,14 +46,14 @@ public class TransactionSyncerStateStorage {
     }
 }
 
-extension TransactionSyncerStateStorage {
-    public func syncerState(syncerId: String) throws -> TransactionSyncerState? {
+public extension TransactionSyncerStateStorage {
+    func syncerState(syncerId: String) throws -> TransactionSyncerState? {
         try dbPool.read { db in
             try TransactionSyncerState.filter(TransactionSyncerState.Columns.syncerId == syncerId).fetchOne(db)
         }
     }
 
-    public func save(syncerState: TransactionSyncerState) throws {
+    func save(syncerState: TransactionSyncerState) throws {
         try dbPool.write { db in
             try syncerState.save(db)
         }
