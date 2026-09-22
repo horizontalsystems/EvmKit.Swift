@@ -141,6 +141,17 @@ public extension Chain {
         )
     }
 
+    /// Circle's layer 1, with USDC as the native coin and the gas token.
+    static var arc: Chain {
+        Chain(
+            id: 5042,
+            coinType: 60,
+            syncInterval: 15,
+            gasLimit: 10_000_000,
+            isEIP1559Supported: true
+        )
+    }
+
     static var ethereumRopsten: Chain {
         Chain(
             id: 3,

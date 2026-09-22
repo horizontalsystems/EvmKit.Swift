@@ -121,6 +121,14 @@ public extension TransactionSource {
         )
     }
 
+    /// Etherscan indexes Arc under its own explorer domain, through the shared V2 API.
+    static func arc(apiKeys: [String]) -> TransactionSource {
+        TransactionSource(
+            name: "arc.etherscan.io",
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://arc.etherscan.io", apiKeys: apiKeys)
+        )
+    }
+
     static func robinhood(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "robinhoodchain.blockscout.com",
