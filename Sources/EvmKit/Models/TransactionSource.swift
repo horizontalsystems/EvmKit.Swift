@@ -31,8 +31,9 @@ public extension TransactionSource {
         etherscan(apiSubdomain: "api", txSubdomain: nil, apiKeys: apiKeys)
     }
 
+    /// Etherscan V2 serves Sepolia from the shared API host, selected by `chainid`.
     static func sepoliaEtherscan(apiKeys: [String]) -> TransactionSource {
-        etherscan(apiSubdomain: "api-sepolia", txSubdomain: "sepolia", apiKeys: apiKeys)
+        etherscan(apiSubdomain: "api", txSubdomain: "sepolia", apiKeys: apiKeys)
     }
 
     static func ropstenEtherscan(apiKeys: [String]) -> TransactionSource {
@@ -61,7 +62,7 @@ public extension TransactionSource {
     static func bscscanTestNet(apiKeys: [String]) -> TransactionSource {
         TransactionSource(
             name: "testnet.bscscan.com",
-            type: .etherscan(apiBaseUrl: "https://api-testnet.etherscan.io/v2", txBaseUrl: "https://testnet.bscscan.com", apiKeys: apiKeys)
+            type: .etherscan(apiBaseUrl: "https://api.etherscan.io/v2", txBaseUrl: "https://testnet.bscscan.com", apiKeys: apiKeys)
         )
     }
 

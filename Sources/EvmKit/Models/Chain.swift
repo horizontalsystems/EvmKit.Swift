@@ -6,17 +6,16 @@ public struct Chain {
     public let gasLimit: Int
     public let syncInterval: TimeInterval
     public let isEIP1559Supported: Bool
+    public let isMainNet: Bool
 
-    public init(id: Int, coinType: UInt32, syncInterval: TimeInterval, gasLimit: Int = 2_000_000, isEIP1559Supported: Bool) {
+    /// `isMainNet` defaults to `coinType != 1`; pass it explicitly for a testnet that derives keys with the mainnet coin type.
+    public init(id: Int, coinType: UInt32, syncInterval: TimeInterval, gasLimit: Int = 2_000_000, isEIP1559Supported: Bool, isMainNet: Bool? = nil) {
         self.id = id
         self.coinType = coinType
         self.gasLimit = gasLimit
         self.syncInterval = syncInterval
         self.isEIP1559Supported = isEIP1559Supported
-    }
-
-    public var isMainNet: Bool {
-        coinType != 1
+        self.isMainNet = isMainNet ?? (coinType != 1)
     }
 }
 
@@ -192,12 +191,15 @@ public extension Chain {
         )
     }
 
+    /// Uses the mainnet coin type, so a seed resolves to the same address as on Ethereum (as MetaMask and other wallets do).
     static var ethereumSepolia: Chain {
         Chain(
             id: 11_155_111,
-            coinType: 1,
+            coinType: 60,
             syncInterval: 15,
-            isEIP1559Supported: true
+            gasLimit: 10_000_000,
+            isEIP1559Supported: true,
+            isMainNet: false
         )
     }
 
